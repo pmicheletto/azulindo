@@ -100,22 +100,24 @@ void AzulindoScreen::DrawWave() const {
       (wave_config_.max_intensity - wave_config_.base_intensity) * pulse;
 
   for (int x = 0; x < screen_width_; x += 2) {
-    const float phase =
-        x * wave_config_.frequency + timer_ * wave_config_.speed;
+    float y1 = sinf(x * wave_config_.frequency + timer_ * wave_config_.speed) * intensity;
+    float y2 = sinf(x * wave_config_.frequency + timer_ * wave_config_.speed + PI / 2) * intensity;
 
-    float y1 = cosf(phase) * intensity;
-    float y2 = cosf(phase + PI / 2) * intensity;
-
-    const float harmonic =
-        cosf(x * 0.05f - timer_ * 2.0f) * (intensity * 0.02f);
-
+    float harmonic = sinf(x * 0.05f - timer_ * 2.0f) * (intensity * 0.2f);
     y1 += harmonic;
     y2 -= harmonic;
 
-    const int pos_y1 = center_y + static_cast<int>(y1);
-    const int pos_y2 = center_y + static_cast<int>(y2);
+    int pos_y1 = center_y + static_cast<int>(y1);
+    int pos_y2 = center_y + static_cast<int>(y2);
 
-    DrawLine(x, pos_y2, x, pos_y1,
-             Fade(wave_config_.core_color, 0.15f));
+    DrawLine(pos_y2, pos_y1, x, pos_y2, Fade(wave_config_.core_color, 0.1f));
+
+    for (int layer = 1; layer <= 3; ++layer) {
+      float radius = static_cast<float>(4 - layer);
+      Color layer_color = Fade(wave_config_.glow_color, 0.1f / layer);
+      
+      // DrawCircle(x, pos_y1, radius, layer_color);
+      // DrawCircle(x, pos_y2, radius, layer_color);
+    }
   }
 }
