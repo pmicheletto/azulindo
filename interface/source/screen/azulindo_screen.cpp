@@ -29,43 +29,42 @@ void AzulindoScreen::Draw() {
 }
 
 void AzulindoScreen::UpdateEmotion(float dt) {
-  const EmotionProfile& target =
-      GetEmotionProfile(target_emotion_);
+  const EmotionProfile& target = GetEmotionProfile(target_emotion_);
 
   const float speed = target.transition_speed;
 
-  wave_config_.frequency = Lerp(
-      wave_config_.frequency,
-      target.wave.frequency,
-      dt * speed);
+  wave_config_.wave_density =
+      Lerp(wave_config_.wave_density, target.wave.wave_density, dt * speed);
 
-  wave_config_.speed = Lerp(
-      wave_config_.speed,
-      target.wave.speed,
-      dt * speed);
+  wave_config_.amplitude_min =
+      Lerp(wave_config_.amplitude_min, target.wave.amplitude_min, dt * speed);
 
-  wave_config_.base_intensity = Lerp(
-      wave_config_.base_intensity,
-      target.wave.base_intensity,
-      dt * speed);
+  wave_config_.amplitude_max =
+      Lerp(wave_config_.amplitude_max, target.wave.amplitude_max, dt * speed);
 
-  wave_config_.max_intensity = Lerp(
-      wave_config_.max_intensity,
-      target.wave.max_intensity,
-      dt * speed);
+  wave_config_.harmonic_strength =
+      Lerp(wave_config_.harmonic_strength, target.wave.harmonic_strength,
+           dt * speed);
 
-  wave_config_.core_color = ColorLerp(
-      wave_config_.core_color,
-      target.wave.core_color,
-      dt * speed);
+  wave_config_.harmonic_frequency =
+      Lerp(wave_config_.harmonic_frequency, target.wave.harmonic_frequency,
+           dt * speed);
 
-  wave_config_.glow_color = ColorLerp(
-      wave_config_.glow_color,
-      target.wave.glow_color,
-      dt * speed);
+  wave_config_.animation_speed = Lerp(wave_config_.animation_speed,
+                                      target.wave.animation_speed, dt * speed);
 
-  if (fabs(wave_config_.frequency - target.wave.frequency) < 0.0001f &&
-      fabs(wave_config_.speed - target.wave.speed) < 0.0001f) {
+  wave_config_.harmonic_speed =
+      Lerp(wave_config_.harmonic_speed, target.wave.harmonic_speed, dt * speed);
+
+  wave_config_.wave_color =
+      ColorLerp(wave_config_.wave_color, target.wave.wave_color, dt * speed);
+
+  wave_config_.glow_color =
+      ColorLerp(wave_config_.glow_color, target.wave.glow_color, dt * speed);
+
+  if (fabs(wave_config_.wave_density - target.wave.wave_density) < 0.0001f &&
+      fabs(wave_config_.animation_speed - target.wave.animation_speed) <
+          0.0001f) {
     current_emotion_ = target_emotion_;
   }
 }

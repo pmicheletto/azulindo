@@ -4,17 +4,18 @@
 #include "raylib.h"
 
 struct WaveConfig {
-  float frequency = 0.04f;
-  float speed = 5.0f;
+  float wave_density = 0.04f;
+  float amplitude_min = 25.0f;
+  float amplitude_max = 100.0f;
+  float harmonic_strength = 0.2f;
+  float harmonic_frequency = 0.05f;  // Controls the frequency of the harmonic
+                                     // wave (how fast it oscillates)
 
-  Color core_color = SKYBLUE;
+  float animation_speed = 5.0f;
+  float harmonic_speed = 2.0f;  // Controls how fast the harmonic wave animates
+
+  Color wave_color = SKYBLUE;
   Color glow_color = {80, 160, 255, 200};
-
-  float base_intensity = 25.0f;
-  float max_intensity = 100.0f;
-  
-  bool use_sin_wave = false;  // false = cos, true = sin
-  float harmonic_coefficient = 0.02f;
 };
 
 #endif  // AZULINDO_WAVE_CONFIG_H_
