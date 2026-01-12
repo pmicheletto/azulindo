@@ -1,11 +1,7 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.25)
 
-if (POLICY CMP0141)
-    cmake_policy(SET CMP0141 NEW)
-    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<CONFIG:Debug>:ProgramDatabase,>$<CONFIG:RelWithDebInfo>:ProgramDatabase>")
-endif()
+project(azulindo_interface LANGUAGES CXX)
 
-project("source")
 
-# Include sub-projects.
-add_subdirectory("source")
+add_subdirectory(raylib)
+add_subdirectory(source)
