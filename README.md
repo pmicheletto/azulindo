@@ -60,3 +60,7 @@ Current focus: visual behavior, modular architecture, and interface dynamics.
 Below are early test stages of the wave system, which represent the AI’s emotional and behavioral states through dynamic visual motion.
 
 ![Wave system](docs/interface.gif)
+
+Below is the final result of the first version, demonstrating smooth transitions between different emotional states.
+
+![Wave system](docs/first_version.gif)
