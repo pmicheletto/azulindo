@@ -2,6 +2,7 @@ add_executable(azulindo_app
     main.cpp
     screen/azulindo_screen.cpp
     core/emotion_profile.cpp
+    screen/hologram.cpp
 )
 
 set_target_properties(azulindo_app PROPERTIES
@@ -23,3 +24,5 @@ target_link_libraries(azulindo_app PRIVATE
     rt
     X11
 )
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
