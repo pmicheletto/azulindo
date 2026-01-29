@@ -71,12 +71,12 @@ struct HudConfig {
   static constexpr float logs_panel_margin_x_percent =
       0.015f;  // 1.5% from right edge
   static constexpr float logs_panel_margin_x_min = 10.0f;
-  static constexpr float logs_title_margin_y = 30.0f;
+  static constexpr float logs_title_margin_y = 10.0f;
   static constexpr int logs_font_size = 10;
   static constexpr float logs_line_spacing = 20.0f;
-  static constexpr float logs_first_line_y = 50.0f;
-  static constexpr float logs_second_line_y = 65.0f;
-  static constexpr float logs_third_line_y = 80.0f;
+  static constexpr float logs_first_line_y = 25.0f;
+  static constexpr float logs_second_line_y = 40.0f;
+  static constexpr float logs_third_line_y = 55.0f;
 };
 
 struct WaveLayoutConfig {

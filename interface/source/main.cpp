@@ -3,10 +3,13 @@
 #include "screen/azulindo_screen.h"
 
 int main() {
-  InitWindow(480, 480, "Azulindo");
+  int current_width = 800;
+  int current_height = 480;
+
+  InitWindow(current_width, current_height, "Azulindo");
   SetTargetFPS(60);
 
-  AzulindoScreen screen(480, 480);
+  AzulindoScreen screen(current_width, current_height);
 
   while (!WindowShouldClose()) {
     if (IsKeyDown(KEY_ONE)) {

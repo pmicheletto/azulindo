@@ -15,54 +15,52 @@ float GetCurrentRSS() {
 }
 }  // namespace
 
-AzulindoScreen::AzulindoScreen(int screen_width, int screen_height)
-    : screen_width_(screen_width), screen_height_(screen_height) {
+AzulindoScreen::AzulindoScreen(int screen_width, int screen_height) {
+  if (screen_width <= 0 || screen_height <= 0) {
+    use_full_screen_ = true;
+    screen_width_ = GetScreenWidth();
+    screen_height_ = GetScreenHeight();
+  } else {
+    use_full_screen_ = false;
+    screen_width_ = screen_width;
+    screen_height_ = screen_height;
+  }
+
   wave_config_ = GetEmotionProfile(current_emotion_).wave;
   car_hologram_ = std::make_unique<Hologram>("azulindo.glb");
-
-  // Calculate responsive dialogue box dimensions
-  const float dialogue_width =
-      std::clamp(static_cast<float>(screen_width) *
-                     LayoutConstants::DialogueConfig::width_percent,
-                 LayoutConstants::DialogueConfig::min_width,
-                 LayoutConstants::DialogueConfig::max_width);
-  const float dialogue_height =
-      std::clamp(static_cast<float>(screen_height) *
-                     LayoutConstants::DialogueConfig::height_percent,
-                 LayoutConstants::DialogueConfig::min_height,
-                 LayoutConstants::DialogueConfig::max_height);
-  const float dialogue_position_x =
-      static_cast<float>(screen_width) *
-      LayoutConstants::DialogueConfig::position_x_percent;
-  const float dialogue_position_y =
-      static_cast<float>(screen_height) -
-      (static_cast<float>(screen_height) *
-       LayoutConstants::DialogueConfig::position_y_offset_percent) -
-      dialogue_height;
-
-  dialogue_bounds_ = {dialogue_position_x, dialogue_position_y, dialogue_width,
-                      dialogue_height};
+  UpdateLayout();
 }
 
-void AzulindoScreen::SetEmotion(EmotionState emotion) {
-  target_emotion_ = emotion;
-  timer_ = 0.0f;
+void AzulindoScreen::UpdateLayout() {
+  if (use_full_screen_) {
+    screen_width_ = GetScreenWidth();
+    screen_height_ = GetScreenHeight();
+  }
+
+  const float sw = static_cast<float>(screen_width_);
+  const float sh = static_cast<float>(screen_height_);
+
+  const float d_width =
+      std::clamp(sw * LayoutConstants::DialogueConfig::width_percent,
+                 LayoutConstants::DialogueConfig::min_width,
+                 LayoutConstants::DialogueConfig::max_width);
+  const float d_height =
+      std::clamp(sh * LayoutConstants::DialogueConfig::height_percent,
+                 LayoutConstants::DialogueConfig::min_height,
+                 LayoutConstants::DialogueConfig::max_height);
+
+  dialogue_bounds_ = {
+      sw * LayoutConstants::DialogueConfig::position_x_percent,
+      sh - (sh * LayoutConstants::DialogueConfig::position_y_offset_percent) -
+          d_height,
+      d_width, d_height};
 }
 
 void AzulindoScreen::Update(float delta_time) {
+  UpdateLayout();
   timer_ += delta_time;
   UpdateEmotion(delta_time);
   car_hologram_->Update(delta_time);
-}
-
-void AzulindoScreen::Draw() {
-  ClearBackground(LayoutConstants::ColorConfig::background);
-
-  DrawBackgroundLines();
-  DrawWave();
-  DrawHud();
-  DrawDialogueBox();
-  car_hologram_->Draw(wave_config_.wave_color);
 }
 
 void AzulindoScreen::UpdateEmotion(float dt) {
@@ -86,23 +84,32 @@ void AzulindoScreen::UpdateEmotion(float dt) {
   wave_config_.glow_color =
       ColorLerp(wave_config_.glow_color, target.wave.glow_color, factor);
 
-  const float threshold = LayoutConstants::EmotionTransitionConfig::threshold;
-  if (std::abs(wave_config_.wave_density - target.wave.wave_density) <
-          threshold &&
-      std::abs(wave_config_.animation_speed - target.wave.animation_speed) <
-          threshold) {
+  if (std::abs(wave_config_.wave_density - target.wave.wave_density) < 0.001f) {
     current_emotion_ = target_emotion_;
   }
 }
 
-void AzulindoScreen::DrawBackgroundLines() const {
-  const int line_spacing = LayoutConstants::BackgroundConfig::line_spacing;
-  const int line_thickness = LayoutConstants::BackgroundConfig::line_thickness;
-  const Color line_color = LayoutConstants::ColorConfig::background_line;
+void AzulindoScreen::Draw() {
+  ClearBackground(LayoutConstants::ColorConfig::background);
+  DrawBackgroundLines();
+  DrawWave();
+  DrawHud();
+  DrawDialogueBox();
+  car_hologram_->Draw(wave_config_.wave_color);
+}
 
-  for (int y = 0; y < screen_height_; y += line_spacing) {
-    DrawRectangle(0, y, screen_width_, line_thickness, line_color);
+void AzulindoScreen::DrawBackgroundLines() const {
+  for (int y = 0; y < screen_height_;
+       y += LayoutConstants::BackgroundConfig::line_spacing) {
+    DrawRectangle(0, y, screen_width_,
+                  LayoutConstants::BackgroundConfig::line_thickness,
+                  LayoutConstants::ColorConfig::background_line);
   }
+}
+
+void AzulindoScreen::SetEmotion(EmotionState emotion) {
+  target_emotion_ = emotion;
+  timer_ = 0.0f;
 }
 
 void AzulindoScreen::DrawDialogueBox() const {
