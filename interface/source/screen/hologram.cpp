@@ -1,42 +1,40 @@
 #include "hologram.h"
 
 Hologram::Hologram(const char* modelPath) : rotation_(0.0f) {
-  using namespace HologramConstants;
+  using HConfig = LayoutConfig::HologramConfig::CameraConfig;
 
   model_ = LoadModel(modelPath);
-  camera_.position =
-      (Vector3){CameraConfig::position_x, CameraConfig::position_y,
-                CameraConfig::position_z};
-  camera_.target = (Vector3){CameraConfig::target_x, CameraConfig::target_y,
-                             CameraConfig::target_z};
-  camera_.up =
-      (Vector3){CameraConfig::up_x, CameraConfig::up_y, CameraConfig::up_z};
-  camera_.fovy = CameraConfig::fovy;
+  camera_.position = (Vector3){HConfig::position_x, HConfig::position_y,
+                               HConfig::position_z};
+  camera_.target = (Vector3){HConfig::target_x, HConfig::target_y,
+                             HConfig::target_z};
+  camera_.up = (Vector3){HConfig::up_x, HConfig::up_y, HConfig::up_z};
+  camera_.fovy = HConfig::fovy;
   camera_.projection = CAMERA_PERSPECTIVE;
 }
 
 Hologram::~Hologram() { UnloadModel(model_); }
 
 void Hologram::Update(float dt) {
-  using namespace HologramConstants;
-  rotation_ += dt * AnimationConfig::rotation_speed_degrees_per_second;
+  using AConfig = LayoutConfig::HologramConfig::AnimationConfig;
+  rotation_ += dt * AConfig::rotation_speed_degrees_per_second;
 }
 
 void Hologram::Draw(Color color) {
-  using namespace HologramConstants;
+  using HModel = LayoutConfig::HologramConfig::ModelConfig;
+  using AConfig = LayoutConfig::HologramConfig::AnimationConfig;
 
   BeginMode3D(camera_);
   // DrawGrid(10, 1.0f); // if necessary for while debugging
-  Color hologramaColor = Fade(color, AnimationConfig::color_fade_alpha);
+  Color hologramaColor = Fade(color, AConfig::color_fade_alpha);
 
-  const Vector3 model_position = {ModelConfig::position_x,
-                                  ModelConfig::position_y,
-                                  ModelConfig::position_z};
-  const Vector3 model_rotation_axis = {ModelConfig::rotation_axis_x,
-                                       ModelConfig::rotation_axis_y,
-                                       ModelConfig::rotation_axis_z};
-  const Vector3 model_scale = {ModelConfig::scale_x, ModelConfig::scale_y,
-                               ModelConfig::scale_z};
+  const Vector3 model_position = {HModel::position_x, HModel::position_y,
+                                  HModel::position_z};
+  const Vector3 model_rotation_axis = {HModel::rotation_axis_x,
+                                       HModel::rotation_axis_y,
+                                       HModel::rotation_axis_z};
+  const Vector3 model_scale = {HModel::scale_x, HModel::scale_y,
+                               HModel::scale_z};
 
   DrawModelWiresEx(model_, model_position, model_rotation_axis, rotation_,
                    model_scale, hologramaColor);

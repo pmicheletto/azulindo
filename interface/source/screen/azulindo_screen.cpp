@@ -6,7 +6,7 @@ float GetCurrentRSS() {
   std::string dummy;
   long rss;
 
-  for (int i = 0; i < LayoutConstants::MemoryConfig::fields_before_rss; ++i)
+  for (int i = 0; i < LayoutConfig::MemoryConfig::fields_before_rss; ++i)
     stat_stream >> dummy;
   stat_stream >> rss;
 
@@ -41,17 +41,17 @@ void AzulindoScreen::UpdateLayout() {
   const float sh = static_cast<float>(screen_height_);
 
   const float d_width =
-      std::clamp(sw * LayoutConstants::DialogueConfig::width_percent,
-                 LayoutConstants::DialogueConfig::min_width,
-                 LayoutConstants::DialogueConfig::max_width);
+      std::clamp(sw * LayoutConfig::DialogueConfig::width_percent,
+                 LayoutConfig::DialogueConfig::min_width,
+                 LayoutConfig::DialogueConfig::max_width);
   const float d_height =
-      std::clamp(sh * LayoutConstants::DialogueConfig::height_percent,
-                 LayoutConstants::DialogueConfig::min_height,
-                 LayoutConstants::DialogueConfig::max_height);
+      std::clamp(sh * LayoutConfig::DialogueConfig::height_percent,
+                 LayoutConfig::DialogueConfig::min_height,
+                 LayoutConfig::DialogueConfig::max_height);
 
   dialogue_bounds_ = {
-      sw * LayoutConstants::DialogueConfig::position_x_percent,
-      sh - (sh * LayoutConstants::DialogueConfig::position_y_offset_percent) -
+      sw * LayoutConfig::DialogueConfig::position_x_percent,
+      sh - (sh * LayoutConfig::DialogueConfig::position_y_offset_percent) -
           d_height,
       d_width, d_height};
 }
@@ -90,7 +90,7 @@ void AzulindoScreen::UpdateEmotion(float dt) {
 }
 
 void AzulindoScreen::Draw() {
-  ClearBackground(LayoutConstants::ColorConfig::background);
+  ClearBackground(LayoutConfig::ColorConfig::background);
   DrawBackgroundLines();
   DrawWave();
   DrawHud();
@@ -100,10 +100,10 @@ void AzulindoScreen::Draw() {
 
 void AzulindoScreen::DrawBackgroundLines() const {
   for (int y = 0; y < screen_height_;
-       y += LayoutConstants::BackgroundConfig::line_spacing) {
+       y += LayoutConfig::BackgroundConfig::line_spacing) {
     DrawRectangle(0, y, screen_width_,
-                  LayoutConstants::BackgroundConfig::line_thickness,
-                  LayoutConstants::ColorConfig::background_line);
+                  LayoutConfig::BackgroundConfig::line_thickness,
+                  LayoutConfig::ColorConfig::background_line);
   }
 }
 
@@ -114,112 +114,112 @@ void AzulindoScreen::SetEmotion(EmotionState emotion) {
 
 void AzulindoScreen::DrawDialogueBox() const {
   DrawRectangleRec(dialogue_bounds_,
-                   LayoutConstants::ColorConfig::dialogue_box);
+                   LayoutConfig::ColorConfig::dialogue_box);
 
   DrawRectangleLinesEx(dialogue_bounds_,
-                       LayoutConstants::DialogueConfig::border_thickness,
-                       LayoutConstants::ColorConfig::dialogue_border);
+                       LayoutConfig::DialogueConfig::border_thickness,
+                       LayoutConfig::ColorConfig::dialogue_border);
 
   const float title_position_x =
-      dialogue_bounds_.x + LayoutConstants::DialogueConfig::title_margin_x;
+      dialogue_bounds_.x + LayoutConfig::DialogueConfig::title_margin_x;
   const float title_position_y =
-      dialogue_bounds_.y + LayoutConstants::DialogueConfig::title_margin_y;
+      dialogue_bounds_.y + LayoutConfig::DialogueConfig::title_margin_y;
   DrawText("AZULINDO:", static_cast<int>(title_position_x),
            static_cast<int>(title_position_y),
-           LayoutConstants::DialogueConfig::title_font_size, SKYBLUE);
+           LayoutConfig::DialogueConfig::title_font_size, SKYBLUE);
 
   const float text_area_x =
-      dialogue_bounds_.x + LayoutConstants::DialogueConfig::text_margin_x;
+      dialogue_bounds_.x + LayoutConfig::DialogueConfig::text_margin_x;
   const float text_area_y =
-      dialogue_bounds_.y + LayoutConstants::DialogueConfig::text_margin_top;
+      dialogue_bounds_.y + LayoutConfig::DialogueConfig::text_margin_top;
   const float text_area_width =
       dialogue_bounds_.width -
-      LayoutConstants::DialogueConfig::text_margin_total_x;
+      LayoutConfig::DialogueConfig::text_margin_total_x;
   const float text_area_height =
       dialogue_bounds_.height -
-      LayoutConstants::DialogueConfig::text_margin_bottom;
+      LayoutConfig::DialogueConfig::text_margin_bottom;
 
   Rectangle text_area = {text_area_x, text_area_y, text_area_width,
                          text_area_height};
 
   DrawTextWrapped(GetFontDefault(), ai_text_, text_area,
-                  LayoutConstants::DialogueConfig::text_font_size,
-                  LayoutConstants::DialogueConfig::text_letter_spacing,
+                  LayoutConfig::DialogueConfig::text_font_size,
+                  LayoutConfig::DialogueConfig::text_letter_spacing,
                   LIGHTGRAY);
 }
 
 void AzulindoScreen::DrawHud() const {
   const float system_position_x =
       std::max(static_cast<float>(screen_width_) *
-                   LayoutConstants::HudConfig::system_margin_x_percent,
-               LayoutConstants::HudConfig::system_margin_x_min);
+                   LayoutConfig::HudConfig::system_margin_x_percent,
+               LayoutConfig::HudConfig::system_margin_x_min);
   const float system_position_y =
       std::max(static_cast<float>(screen_height_) *
-                   LayoutConstants::HudConfig::system_margin_y_percent,
-               LayoutConstants::HudConfig::system_margin_y_min);
+                   LayoutConfig::HudConfig::system_margin_y_percent,
+               LayoutConfig::HudConfig::system_margin_y_min);
   DrawText("SYSTEM: AZULINDO ACTIVE", static_cast<int>(system_position_x),
            static_cast<int>(system_position_y),
-           LayoutConstants::HudConfig::system_title_font_size, SKYBLUE);
+           LayoutConfig::HudConfig::system_title_font_size, SKYBLUE);
 
   const float engine_position_y =
-      system_position_y + LayoutConstants::HudConfig::engine_margin_y_offset;
+      system_position_y + LayoutConfig::HudConfig::engine_margin_y_offset;
   DrawText("ENGINE: ONLINE", static_cast<int>(system_position_x),
            static_cast<int>(engine_position_y),
-           LayoutConstants::HudConfig::engine_font_size, BLUE);
+           LayoutConfig::HudConfig::engine_font_size, BLUE);
 
   const float logs_panel_width =
       std::clamp(static_cast<float>(screen_width_) *
-                     LayoutConstants::HudConfig::logs_panel_width_percent,
-                 LayoutConstants::HudConfig::logs_panel_width_min,
-                 LayoutConstants::HudConfig::logs_panel_width_max);
+                     LayoutConfig::HudConfig::logs_panel_width_percent,
+                 LayoutConfig::HudConfig::logs_panel_width_min,
+                 LayoutConfig::HudConfig::logs_panel_width_max);
   const float logs_panel_margin_x =
       std::max(static_cast<float>(screen_width_) *
-                   LayoutConstants::HudConfig::logs_panel_margin_x_percent,
-               LayoutConstants::HudConfig::logs_panel_margin_x_min);
+                   LayoutConfig::HudConfig::logs_panel_margin_x_percent,
+               LayoutConfig::HudConfig::logs_panel_margin_x_min);
   const float logs_panel_x = static_cast<float>(screen_width_) -
                              logs_panel_width - logs_panel_margin_x;
   const float logs_panel_y = system_position_y;
   DrawRectangle(static_cast<int>(logs_panel_x), static_cast<int>(logs_panel_y),
                 static_cast<int>(logs_panel_width),
-                static_cast<int>(LayoutConstants::HudConfig::logs_panel_height),
-                LayoutConstants::ColorConfig::hud_panel);
+                static_cast<int>(LayoutConfig::HudConfig::logs_panel_height),
+                LayoutConfig::ColorConfig::hud_panel);
 
   const float logs_text_x = logs_panel_x + 10.0f;  // Small padding inside panel
   DrawText("AZULINDO LOGS:", static_cast<int>(logs_text_x),
            static_cast<int>(logs_panel_y +
-                            LayoutConstants::HudConfig::logs_title_margin_y),
-           LayoutConstants::HudConfig::logs_font_size, SKYBLUE);
+                            LayoutConfig::HudConfig::logs_title_margin_y),
+           LayoutConfig::HudConfig::logs_font_size, SKYBLUE);
 
   DrawText("- Core: OK", static_cast<int>(logs_text_x),
            static_cast<int>(logs_panel_y +
-                            LayoutConstants::HudConfig::logs_first_line_y),
-           LayoutConstants::HudConfig::logs_font_size, LIGHTGRAY);
+                            LayoutConfig::HudConfig::logs_first_line_y),
+           LayoutConfig::HudConfig::logs_font_size, LIGHTGRAY);
   DrawText("- Wave Engine: STABLE", static_cast<int>(logs_text_x),
            static_cast<int>(logs_panel_y +
-                            LayoutConstants::HudConfig::logs_second_line_y),
-           LayoutConstants::HudConfig::logs_font_size, LIGHTGRAY);
+                            LayoutConfig::HudConfig::logs_second_line_y),
+           LayoutConfig::HudConfig::logs_font_size, LIGHTGRAY);
 
-  char ramText[LayoutConstants::MemoryConfig::ram_text_buffer_size];
+  char ramText[LayoutConfig::MemoryConfig::ram_text_buffer_size];
   sprintf(ramText, "- Memory: %.1f MB", GetCurrentRSS());
   DrawText(ramText, static_cast<int>(logs_text_x),
            static_cast<int>(logs_panel_y +
-                            LayoutConstants::HudConfig::logs_third_line_y),
-           LayoutConstants::HudConfig::logs_font_size, GREEN);
+                            LayoutConfig::HudConfig::logs_third_line_y),
+           LayoutConfig::HudConfig::logs_font_size, GREEN);
 }
 void AzulindoScreen::DrawWave() const {
   const float vertical_offset =
       std::clamp(static_cast<float>(screen_height_) *
-                     LayoutConstants::WaveLayoutConfig::vertical_offset_percent,
-                 LayoutConstants::WaveLayoutConfig::vertical_offset_min,
-                 LayoutConstants::WaveLayoutConfig::vertical_offset_max);
+                     LayoutConfig::WaveLayoutConfig::vertical_offset_percent,
+                 LayoutConfig::WaveLayoutConfig::vertical_offset_min,
+                 LayoutConfig::WaveLayoutConfig::vertical_offset_max);
   const int wave_position_y =
-      (screen_height_ / LayoutConstants::LayoutMath::center_divisor) -
+      (screen_height_ / 2) -
       static_cast<int>(vertical_offset);
   const int wave_position_x =
-      screen_width_ / LayoutConstants::LayoutMath::center_divisor;
+      (screen_width_ / 2);
 
-  const float pulse_min = LayoutConstants::WaveLayoutConfig::pulse_min;
-  const float pulse_max = LayoutConstants::WaveLayoutConfig::pulse_max;
+  const float pulse_min = LayoutConfig::WaveLayoutConfig::pulse_min;
+  const float pulse_max = LayoutConfig::WaveLayoutConfig::pulse_max;
   const float pulse =
       sinf(timer_ * wave_config_.animation_speed) * pulse_min + pulse_max;
 
@@ -227,14 +227,14 @@ void AzulindoScreen::DrawWave() const {
       wave_config_.amplitude_min +
       (wave_config_.amplitude_max - wave_config_.amplitude_min) * pulse;
 
-  const int x_step = LayoutConstants::WaveLayoutConfig::x_step;
+  const int x_step = LayoutConfig::WaveLayoutConfig::x_step;
   for (int x = 0; x < screen_width_; x += x_step) {
     float h1 = sinf(x * wave_config_.wave_density +
                     timer_ * wave_config_.animation_speed) *
                amplitude;
     float h2 = sinf(x * wave_config_.wave_density +
                     timer_ * wave_config_.animation_speed +
-                    LayoutConstants::WaveLayoutConfig::phase_offset) *
+                    LayoutConfig::WaveLayoutConfig::phase_offset) *
                amplitude;
 
     float harmonic = sinf(x * wave_config_.harmonic_frequency -
@@ -249,15 +249,15 @@ void AzulindoScreen::DrawWave() const {
 
     DrawLine(pos_x1, pos_y1, x, pos_y2,
              Fade(wave_config_.wave_color,
-                  LayoutConstants::WaveLayoutConfig::fade_alpha));
+                  LayoutConfig::WaveLayoutConfig::fade_alpha));
 
-    const int max_layers = LayoutConstants::WaveLayoutConfig::max_layers;
-    const int base_radius = LayoutConstants::WaveLayoutConfig::base_radius;
+    const int max_layers = LayoutConfig::WaveLayoutConfig::max_layers;
+    const int base_radius = LayoutConfig::WaveLayoutConfig::base_radius;
     for (int layer = 1; layer <= max_layers; ++layer) {
       float radius = static_cast<float>(base_radius - layer);
       Color layer_color =
           Fade(wave_config_.glow_color,
-               LayoutConstants::WaveLayoutConfig::fade_alpha / layer);
+               LayoutConfig::WaveLayoutConfig::fade_alpha / layer);
 
       // DrawCircle(x, pos_y1, radius, layer_color);
       // DrawCircle(x, pos_y2, radius, layer_color);
@@ -284,7 +284,7 @@ void AzulindoScreen::DrawTextWrapped(Font font, const char* text, Rectangle rec,
     int codepoint = GetCodepoint(&text[i], &codepointByteCount);
     int index = GetGlyphIndex(font, codepoint);
 
-    if (codepoint == LayoutConstants::TextWrapConfig::unknown_codepoint)
+    if (codepoint == LayoutConfig::TextWrapConfig::unknown_codepoint)
       codepointByteCount = 1;
     i += (codepointByteCount - 1);
 
@@ -331,7 +331,7 @@ void AzulindoScreen::DrawTextWrapped(Font font, const char* text, Rectangle rec,
       if (i == endLine) {
         const float line_height =
             font.baseSize *
-            LayoutConstants::TextWrapConfig::line_height_multiplier;
+            LayoutConfig::TextWrapConfig::line_height_multiplier;
         textOffsetY += line_height * scaleFactor;
         textOffsetX = 0;
         startLine = endLine;

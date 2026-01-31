@@ -1,7 +1,7 @@
 #ifndef AZULINDO_EMOTION_PROFILE_H_
 #define AZULINDO_EMOTION_PROFILE_H_
 
-#include "config/wave_config.h"
+#include "configs/wave_config.h"
 #include "emotion.h"
 
 struct EmotionProfile {

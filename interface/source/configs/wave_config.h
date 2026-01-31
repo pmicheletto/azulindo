@@ -1,5 +1,5 @@
-#ifndef AZULINDO_WAVE_CONFIG_H_
-#define AZULINDO_WAVE_CONFIG_H_
+#ifndef INTERFACE_SOURCE_CONFIGS_WAVE_CONFIG_H_
+#define INTERFACE_SOURCE_CONFIGS_WAVE_CONFIG_H_
 
 #include "raylib.h"
 
@@ -18,4 +18,4 @@ struct WaveConfig {
   Color glow_color = {80, 160, 255, 200};
 };
 
-#endif  // AZULINDO_WAVE_CONFIG_H_
+#endif  // INTERFACE_SOURCE_CONFIGS_WAVE_CONFIG_H_
