@@ -18,12 +18,14 @@ target_include_directories(azulindo_app PRIVATE
 
 target_link_libraries(azulindo_app PRIVATE
     raylib
-    GL
     m
     pthread
     dl
     rt
-    X11
 )
+
+if(NOT APPLE AND NOT WIN32)
+    target_link_libraries(azulindo_app PRIVATE GLESv2 EGL drm gbm)
+endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
