@@ -8,7 +8,7 @@
 #include <memory>
 #include <string>
 
-#include "core/emotion_profile.h"
+#include "core/state_emotion/emotion_profile.h"
 #include "hologram.h"
 #include "configs/layout_config.h"
 #include "raylib.h"

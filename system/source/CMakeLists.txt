@@ -1,7 +1,7 @@
 add_executable(azulindo_app
     main.cpp
     screen/azulindo_screen.cpp
-    core/emotion_profile.cpp
+    core/state_emotion/emotion_profile.cpp
     screen/hologram.cpp
 )
 
