@@ -1,3 +1,7 @@
 [submodule "llama.cpp"]
 	path = llama.cpp
 	url = https://github.com/ggerganov/llama.cpp.git
+
+[submodule "interface/raylib"]
+    path = interface/raylib
+    url = https://github.com/raysan5/raylib.git
