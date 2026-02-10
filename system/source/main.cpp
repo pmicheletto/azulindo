@@ -1,4 +1,4 @@
-#include "core/emotion.h"
+#include "core/state_emotion/emotion.h"
 #include "raylib.h"
 #include "screen/azulindo_screen.h"
 

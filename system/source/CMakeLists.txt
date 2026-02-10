@@ -3,6 +3,8 @@ add_executable(azulindo_app
     screen/azulindo_screen.cpp
     core/state_emotion/emotion_profile.cpp
     screen/hologram.cpp
+    core/brain/brain.cpp
+    core/state_emotion/emotion_manager.cpp
 )
 
 set_target_properties(azulindo_app PROPERTIES
