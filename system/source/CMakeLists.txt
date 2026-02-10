@@ -14,12 +14,15 @@ set_target_properties(azulindo_app PROPERTIES
 
 target_include_directories(azulindo_app PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}../
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_SOURCE_DIR}/../raylib/src 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../llama.cpp/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../llama.cpp/src
 )
 
 target_link_libraries(azulindo_app PRIVATE
     raylib
+    llama
     m
     pthread
     dl
