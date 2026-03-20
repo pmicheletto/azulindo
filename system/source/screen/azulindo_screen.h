@@ -21,6 +21,8 @@ class AzulindoScreen {
   void Update(float delta_time);
   void Draw();
   void SetEmotion(EmotionState emotion);
+  void AppendAiText(const std::string& text);
+  void ClearAiText();
 
  private:
   void UpdateLayout();
@@ -38,8 +40,7 @@ class AzulindoScreen {
   bool use_full_screen_;
   float timer_ = 0.0f;
 
-  char ai_text_[1024] =
-      "AZULINDO: Sistema inicializado. Aguardando comandos...";
+  std::string ai_response_;
 
   Rectangle dialogue_bounds_;
   EmotionState current_emotion_ = EmotionState::kIdle;
@@ -48,6 +49,7 @@ class AzulindoScreen {
   WaveConfig wave_config_;
 
   std::unique_ptr<Hologram> car_hologram_;
+  mutable std::mutex text_mutex_;
 };
 
 #endif  // AZULINDO_SCREEN_H_

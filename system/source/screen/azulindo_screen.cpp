@@ -112,40 +112,51 @@ void AzulindoScreen::SetEmotion(EmotionState emotion) {
   timer_ = 0.0f;
 }
 
-void AzulindoScreen::DrawDialogueBox() const {
-  DrawRectangleRec(dialogue_bounds_,
-                   LayoutConfig::ColorConfig::dialogue_box);
+void AzulindoScreen::AppendAiText(const std::string& text) {
+    std::lock_guard<std::mutex> lock(text_mutex_);
+    ai_response_ += text;
+    
+    // Opcional: Limitar o tamanho para não estourar a caixa de diálogo
+    if (ai_response_.length() > 1000) {
+        ai_response_ = ai_response_.substr(ai_response_.length() - 1000);
+    }
+}
 
+void AzulindoScreen::ClearAiText() {
+    std::lock_guard<std::mutex> lock(text_mutex_);
+    ai_response_.clear();
+}
+
+void AzulindoScreen::DrawDialogueBox() const {
+  DrawRectangleRec(dialogue_bounds_, LayoutConfig::ColorConfig::dialogue_box);
   DrawRectangleLinesEx(dialogue_bounds_,
                        LayoutConfig::DialogueConfig::border_thickness,
                        LayoutConfig::ColorConfig::dialogue_border);
 
-  const float title_position_x =
-      dialogue_bounds_.x + LayoutConfig::DialogueConfig::title_margin_x;
-  const float title_position_y =
-      dialogue_bounds_.y + LayoutConfig::DialogueConfig::title_margin_y;
+  const float title_position_x = dialogue_bounds_.x + LayoutConfig::DialogueConfig::title_margin_x;
+  const float title_position_y = dialogue_bounds_.y + LayoutConfig::DialogueConfig::title_margin_y;
+  
   DrawText("AZULINDO:", static_cast<int>(title_position_x),
            static_cast<int>(title_position_y),
            LayoutConfig::DialogueConfig::title_font_size, SKYBLUE);
 
-  const float text_area_x =
-      dialogue_bounds_.x + LayoutConfig::DialogueConfig::text_margin_x;
-  const float text_area_y =
-      dialogue_bounds_.y + LayoutConfig::DialogueConfig::text_margin_top;
-  const float text_area_width =
-      dialogue_bounds_.width -
-      LayoutConfig::DialogueConfig::text_margin_total_x;
-  const float text_area_height =
-      dialogue_bounds_.height -
-      LayoutConfig::DialogueConfig::text_margin_bottom;
+  Rectangle text_area = {
+      dialogue_bounds_.x + LayoutConfig::DialogueConfig::text_margin_x,
+      dialogue_bounds_.y + LayoutConfig::DialogueConfig::text_margin_top,
+      dialogue_bounds_.width - LayoutConfig::DialogueConfig::text_margin_total_x,
+      dialogue_bounds_.height - LayoutConfig::DialogueConfig::text_margin_bottom
+  };
 
-  Rectangle text_area = {text_area_x, text_area_y, text_area_width,
-                         text_area_height};
-
-  DrawTextWrapped(GetFontDefault(), ai_text_, text_area,
-                  LayoutConfig::DialogueConfig::text_font_size,
-                  LayoutConfig::DialogueConfig::text_letter_spacing,
-                  LIGHTGRAY);
+  {
+      std::lock_guard<std::mutex> lock(text_mutex_);
+      
+      if (!ai_response_.empty()) {
+          DrawTextWrapped(GetFontDefault(), ai_response_.c_str(), text_area,
+                          LayoutConfig::DialogueConfig::text_font_size,
+                          LayoutConfig::DialogueConfig::text_letter_spacing,
+                          LIGHTGRAY);
+      }
+  }
 }
 
 void AzulindoScreen::DrawHud() const {
