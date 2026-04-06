@@ -1,6 +1,3 @@
-#include <iostream>
-#include <thread>
-
 #include "core/brain/brain.h"
 #include "core/state_emotion/emotion.h"
 #include "raylib.h"
