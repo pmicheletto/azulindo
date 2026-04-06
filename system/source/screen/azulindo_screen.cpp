@@ -29,6 +29,19 @@ AzulindoScreen::AzulindoScreen(int screen_width, int screen_height) {
   wave_config_ = GetEmotionProfile(current_emotion_).wave;
   car_hologram_ = std::make_unique<Hologram>("azulindo.glb");
   UpdateLayout();
+  dialogue_text_area_ = DialogueTextArea();
+  text_worker_ = std::thread(&AzulindoScreen::TextIngestLoop, this);
+}
+
+AzulindoScreen::~AzulindoScreen() {
+  {
+    std::lock_guard<std::mutex> lock(ingest_mutex_);
+    text_worker_running_ = false;
+  }
+  ingest_cv_.notify_all();
+  if (text_worker_.joinable()) {
+    text_worker_.join();
+  }
 }
 
 void AzulindoScreen::UpdateLayout() {
@@ -58,7 +71,13 @@ void AzulindoScreen::UpdateLayout() {
 
 void AzulindoScreen::Update(float delta_time) {
   UpdateLayout();
-  timer_ += delta_time;
+  {
+    std::lock_guard<std::mutex> lock(layout_mutex_);
+    dialogue_text_area_ = DialogueTextArea();
+  }
+  if (!pause_wave_while_ai_output_) {
+    timer_ += delta_time;
+  }
   UpdateEmotion(delta_time);
   car_hologram_->Update(delta_time);
 }
@@ -112,40 +131,111 @@ void AzulindoScreen::SetEmotion(EmotionState emotion) {
   timer_ = 0.0f;
 }
 
-void AzulindoScreen::DrawDialogueBox() const {
-  DrawRectangleRec(dialogue_bounds_,
-                   LayoutConfig::ColorConfig::dialogue_box);
+void AzulindoScreen::AppendAiText(const std::string& text) {
+  {
+    std::lock_guard<std::mutex> lock(ingest_mutex_);
+    text_ingest_queue_.push(text);
+  }
+  ingest_cv_.notify_one();
+}
 
+void AzulindoScreen::ClearAiText() {
+  {
+    std::lock_guard<std::mutex> lock(ingest_mutex_);
+    while (!text_ingest_queue_.empty()) {
+      text_ingest_queue_.pop();
+    }
+  }
+  {
+    std::lock_guard<std::mutex> lock(text_mutex_);
+    ai_response_.clear();
+  }
+}
+
+void AzulindoScreen::SetPauseWaveWhileAiOutput(bool pause) {
+  pause_wave_while_ai_output_ = pause;
+}
+
+bool AzulindoScreen::IsAiTextPipelineBusy() const {
+  if (text_ingest_active_.load(std::memory_order_acquire)) {
+    return true;
+  }
+  std::lock_guard<std::mutex> lock(ingest_mutex_);
+  return !text_ingest_queue_.empty();
+}
+
+void AzulindoScreen::TextIngestLoop() {
+  while (true) {
+    std::string chunk;
+    {
+      std::unique_lock<std::mutex> lock(ingest_mutex_);
+      ingest_cv_.wait(lock, [this] {
+        return !text_ingest_queue_.empty() || !text_worker_running_;
+      });
+      if (!text_worker_running_ && text_ingest_queue_.empty()) {
+        break;
+      }
+      if (text_ingest_queue_.empty()) {
+        continue;
+      }
+      chunk = std::move(text_ingest_queue_.front());
+      text_ingest_queue_.pop();
+    }
+
+    text_ingest_active_.store(true, std::memory_order_release);
+
+    Rectangle area;
+    {
+      std::lock_guard<std::mutex> lock(layout_mutex_);
+      area = dialogue_text_area_;
+    }
+
+    const Font font = GetFontDefault();
+    const float font_size = LayoutConfig::DialogueConfig::text_font_size;
+    const float spacing = LayoutConfig::DialogueConfig::text_letter_spacing;
+
+    {
+      std::lock_guard<std::mutex> lock(text_mutex_);
+      std::string candidate = ai_response_ + chunk;
+      const float h = MeasureWrappedContentHeight(font, candidate.c_str(), area.width,
+                                                  font_size, spacing);
+      if (h > area.height) {
+        ai_response_ = std::move(chunk);
+      } else {
+        ai_response_ = std::move(candidate);
+      }
+    }
+
+    text_ingest_active_.store(false, std::memory_order_release);
+  }
+}
+
+void AzulindoScreen::DrawDialogueBox() const {
+  DrawRectangleRec(dialogue_bounds_, LayoutConfig::ColorConfig::dialogue_box);
   DrawRectangleLinesEx(dialogue_bounds_,
                        LayoutConfig::DialogueConfig::border_thickness,
                        LayoutConfig::ColorConfig::dialogue_border);
 
-  const float title_position_x =
-      dialogue_bounds_.x + LayoutConfig::DialogueConfig::title_margin_x;
-  const float title_position_y =
-      dialogue_bounds_.y + LayoutConfig::DialogueConfig::title_margin_y;
+  const float title_position_x = dialogue_bounds_.x + LayoutConfig::DialogueConfig::title_margin_x;
+  const float title_position_y = dialogue_bounds_.y + LayoutConfig::DialogueConfig::title_margin_y;
+  
   DrawText("AZULINDO:", static_cast<int>(title_position_x),
            static_cast<int>(title_position_y),
            LayoutConfig::DialogueConfig::title_font_size, SKYBLUE);
 
-  const float text_area_x =
-      dialogue_bounds_.x + LayoutConfig::DialogueConfig::text_margin_x;
-  const float text_area_y =
-      dialogue_bounds_.y + LayoutConfig::DialogueConfig::text_margin_top;
-  const float text_area_width =
-      dialogue_bounds_.width -
-      LayoutConfig::DialogueConfig::text_margin_total_x;
-  const float text_area_height =
-      dialogue_bounds_.height -
-      LayoutConfig::DialogueConfig::text_margin_bottom;
+  Rectangle text_area = DialogueTextArea();
+  std::string text_copy;
+  {
+    std::lock_guard<std::mutex> lock(text_mutex_);
+    text_copy = ai_response_;
+  }
 
-  Rectangle text_area = {text_area_x, text_area_y, text_area_width,
-                         text_area_height};
-
-  DrawTextWrapped(GetFontDefault(), ai_text_, text_area,
-                  LayoutConfig::DialogueConfig::text_font_size,
-                  LayoutConfig::DialogueConfig::text_letter_spacing,
-                  LIGHTGRAY);
+  if (!text_copy.empty()) {
+    DrawTextWrapped(GetFontDefault(), text_copy.c_str(), text_area,
+                    LayoutConfig::DialogueConfig::text_font_size,
+                    LayoutConfig::DialogueConfig::text_letter_spacing,
+                    LIGHTGRAY);
+  }
 }
 
 void AzulindoScreen::DrawHud() const {
@@ -264,6 +354,84 @@ void AzulindoScreen::DrawWave() const {
     }
   }
 }
+
+float AzulindoScreen::MeasureWrappedContentHeight(Font font, const char* text,
+                                                  float rec_width, float fontSize,
+                                                  float spacing) const {
+  int length = TextLength(text);
+  float textOffsetY = 0;
+  float textOffsetX = 0.0f;
+  float scaleFactor = fontSize / (float)font.baseSize;
+
+  enum { MEASURE_STATE = 0, DRAW_STATE = 1 };
+  int state = MEASURE_STATE;
+
+  int startLine = -1;
+  int endLine = -1;
+
+  for (int i = 0; i < length; i++) {
+    int codepointByteCount = 0;
+    int codepoint = GetCodepoint(&text[i], &codepointByteCount);
+    int index = GetGlyphIndex(font, codepoint);
+
+    if (codepoint == LayoutConfig::TextWrapConfig::unknown_codepoint)
+      codepointByteCount = 1;
+    i += (codepointByteCount - 1);
+
+    float glyphWidth = 0;
+    if (codepoint != '\n') {
+      glyphWidth = (font.glyphs[index].advanceX == 0)
+                       ? font.recs[index].width * scaleFactor
+                       : font.glyphs[index].advanceX * scaleFactor;
+      if (i + 1 < length) glyphWidth += spacing;
+    }
+    if (state == MEASURE_STATE) {
+      if ((codepoint == ' ') || (codepoint == '\t') || (codepoint == '\n'))
+        endLine = i;
+
+      if ((textOffsetX + glyphWidth) > rec_width) {
+        endLine = (endLine < 1) ? i : endLine;
+        if (i == endLine) endLine -= codepointByteCount;
+        if ((startLine + codepointByteCount) == endLine)
+          endLine = (i - codepointByteCount);
+        state = DRAW_STATE;
+      } else if ((i + 1) == length) {
+        endLine = i;
+        state = DRAW_STATE;
+      } else if (codepoint == '\n') {
+        state = DRAW_STATE;
+      }
+
+      if (state == DRAW_STATE) {
+        textOffsetX = 0;
+        i = startLine;
+        glyphWidth = 0;
+      }
+    } else {
+      if (i == endLine) {
+        const float line_height =
+            font.baseSize *
+            LayoutConfig::TextWrapConfig::line_height_multiplier;
+        textOffsetY += line_height * scaleFactor;
+        textOffsetX = 0;
+        startLine = endLine;
+        endLine = -1;
+        glyphWidth = 0;
+        state = MEASURE_STATE;
+      }
+    }
+    if ((textOffsetX != 0) || (codepoint != ' ')) textOffsetX += glyphWidth;
+  }
+  return textOffsetY;
+}
+
+Rectangle AzulindoScreen::DialogueTextArea() const {
+  return {dialogue_bounds_.x + LayoutConfig::DialogueConfig::text_margin_x,
+          dialogue_bounds_.y + LayoutConfig::DialogueConfig::text_margin_top,
+          dialogue_bounds_.width - LayoutConfig::DialogueConfig::text_margin_total_x,
+          dialogue_bounds_.height - LayoutConfig::DialogueConfig::text_margin_bottom};
+}
+
 // method from raylib examples
 void AzulindoScreen::DrawTextWrapped(Font font, const char* text, Rectangle rec,
                                      float fontSize, float spacing,
