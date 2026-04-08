@@ -30,7 +30,7 @@ const EmotionProfile kThinkingProfile = {
             .harmonic_frequency = 0.05f,  // Default harmonic frequency
             .animation_speed = 3.0f,      // Faster, more active
             .harmonic_speed = 2.0f,       // Default harmonic speed
-            .wave_color = GREEN,           // Default color
+            .wave_color = GREEN,          // Default color
             .glow_color = {80, 160, 255, 200},
         },
     .transition_speed = 2.0f,
@@ -54,7 +54,7 @@ const EmotionProfile kAngryProfile = {
 
 }  // namespace
 
-const EmotionProfile& GetEmotionProfile(EmotionState state) {
+const EmotionProfile &GetEmotionProfile(EmotionState state) {
   switch (state) {
     case EmotionState::kIdle:
       return kIdleProfile;

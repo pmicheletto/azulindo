@@ -9,6 +9,6 @@ struct EmotionProfile {
   float transition_speed = 2.0f;
 };
 
-const EmotionProfile& GetEmotionProfile(EmotionState state);
+const EmotionProfile &GetEmotionProfile(EmotionState state);
 
 #endif  // AZULINDO_EMOTION_PROFILE_H_

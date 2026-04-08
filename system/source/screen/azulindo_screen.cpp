@@ -1,18 +1,23 @@
 #include "screen/azulindo_screen.h"
 
+#include "core/state_emotion/emotion_manager.h"
+
 namespace {
-float GetCurrentRSS() {
+
+float GetCurrentRSSMegabytes() {
   std::ifstream stat_stream("/proc/self/stat", std::ios_base::in);
   std::string dummy;
-  long rss;
+  long rss = 0;
 
-  for (int i = 0; i < LayoutConfig::MemoryConfig::fields_before_rss; ++i)
+  for (int i = 0; i < LayoutConfig::MemoryConfig::fields_before_rss; ++i) {
     stat_stream >> dummy;
+  }
   stat_stream >> rss;
 
-  float page_size_kb = sysconf(_SC_PAGE_SIZE) / 1024.0f;
-  return (rss * page_size_kb) / 1024.0f;  // Retorna em MB
+  const float page_size_kb = sysconf(_SC_PAGE_SIZE) / 1024.0f;
+  return (static_cast<float>(rss) * page_size_kb) / 1024.0f;
 }
+
 }  // namespace
 
 AzulindoScreen::AzulindoScreen(int screen_width, int screen_height) {
@@ -83,10 +88,11 @@ void AzulindoScreen::Update(float delta_time) {
 }
 
 void AzulindoScreen::UpdateEmotion(float dt) {
-  const EmotionProfile& target = GetEmotionProfile(target_emotion_);
+  target_emotion_ = EmotionManager::Instance().GetCurrentState();
+  const EmotionProfile &target = GetEmotionProfile(target_emotion_);
   const float factor = dt * target.transition_speed;
 
-  auto update = [factor](float& current, float target_val) {
+  auto update = [factor](float &current, float target_val) {
     current = Lerp(current, target_val, factor);
   };
 
@@ -127,11 +133,11 @@ void AzulindoScreen::DrawBackgroundLines() const {
 }
 
 void AzulindoScreen::SetEmotion(EmotionState emotion) {
-  target_emotion_ = emotion;
+  EmotionManager::Instance().SetState(emotion);
   timer_ = 0.0f;
 }
 
-void AzulindoScreen::AppendAiText(const std::string& text) {
+void AzulindoScreen::AppendAiText(const std::string &text) {
   {
     std::lock_guard<std::mutex> lock(ingest_mutex_);
     text_ingest_queue_.push(text);
@@ -197,9 +203,9 @@ void AzulindoScreen::TextIngestLoop() {
     {
       std::lock_guard<std::mutex> lock(text_mutex_);
       std::string candidate = ai_response_ + chunk;
-      const float h = MeasureWrappedContentHeight(font, candidate.c_str(), area.width,
-                                                  font_size, spacing);
-      if (h > area.height) {
+      const float wrapped_height = MeasureWrappedContentHeight(
+          font, candidate.c_str(), area.width, font_size, spacing);
+      if (wrapped_height > area.height) {
         ai_response_ = std::move(chunk);
       } else {
         ai_response_ = std::move(candidate);
@@ -216,9 +222,11 @@ void AzulindoScreen::DrawDialogueBox() const {
                        LayoutConfig::DialogueConfig::border_thickness,
                        LayoutConfig::ColorConfig::dialogue_border);
 
-  const float title_position_x = dialogue_bounds_.x + LayoutConfig::DialogueConfig::title_margin_x;
-  const float title_position_y = dialogue_bounds_.y + LayoutConfig::DialogueConfig::title_margin_y;
-  
+  const float title_position_x =
+      dialogue_bounds_.x + LayoutConfig::DialogueConfig::title_margin_x;
+  const float title_position_y =
+      dialogue_bounds_.y + LayoutConfig::DialogueConfig::title_margin_y;
+
   DrawText("AZULINDO:", static_cast<int>(title_position_x),
            static_cast<int>(title_position_y),
            LayoutConfig::DialogueConfig::title_font_size, SKYBLUE);
@@ -274,7 +282,7 @@ void AzulindoScreen::DrawHud() const {
                 static_cast<int>(LayoutConfig::HudConfig::logs_panel_height),
                 LayoutConfig::ColorConfig::hud_panel);
 
-  const float logs_text_x = logs_panel_x + 10.0f;  // Small padding inside panel
+  const float logs_text_x = logs_panel_x + 10.0f;
   DrawText("AZULINDO LOGS:", static_cast<int>(logs_text_x),
            static_cast<int>(logs_panel_y +
                             LayoutConfig::HudConfig::logs_title_margin_y),
@@ -290,7 +298,7 @@ void AzulindoScreen::DrawHud() const {
            LayoutConfig::HudConfig::logs_font_size, LIGHTGRAY);
 
   char ramText[LayoutConfig::MemoryConfig::ram_text_buffer_size];
-  sprintf(ramText, "- Memory: %.1f MB", GetCurrentRSS());
+  sprintf(ramText, "- Memory: %.1f MB", GetCurrentRSSMegabytes());
   DrawText(ramText, static_cast<int>(logs_text_x),
            static_cast<int>(logs_panel_y +
                             LayoutConfig::HudConfig::logs_third_line_y),
@@ -303,10 +311,8 @@ void AzulindoScreen::DrawWave() const {
                  LayoutConfig::WaveLayoutConfig::vertical_offset_min,
                  LayoutConfig::WaveLayoutConfig::vertical_offset_max);
   const int wave_position_y =
-      (screen_height_ / 2) -
-      static_cast<int>(vertical_offset);
-  const int wave_position_x =
-      (screen_width_ / 2);
+      (screen_height_ / 2) - static_cast<int>(vertical_offset);
+  const int wave_position_x = (screen_width_ / 2);
 
   const float pulse_min = LayoutConfig::WaveLayoutConfig::pulse_min;
   const float pulse_max = LayoutConfig::WaveLayoutConfig::pulse_max;
@@ -340,23 +346,12 @@ void AzulindoScreen::DrawWave() const {
     DrawLine(pos_x1, pos_y1, x, pos_y2,
              Fade(wave_config_.wave_color,
                   LayoutConfig::WaveLayoutConfig::fade_alpha));
-
-    const int max_layers = LayoutConfig::WaveLayoutConfig::max_layers;
-    const int base_radius = LayoutConfig::WaveLayoutConfig::base_radius;
-    for (int layer = 1; layer <= max_layers; ++layer) {
-      float radius = static_cast<float>(base_radius - layer);
-      Color layer_color =
-          Fade(wave_config_.glow_color,
-               LayoutConfig::WaveLayoutConfig::fade_alpha / layer);
-
-      // DrawCircle(x, pos_y1, radius, layer_color);
-      // DrawCircle(x, pos_y2, radius, layer_color);
-    }
   }
 }
 
-float AzulindoScreen::MeasureWrappedContentHeight(Font font, const char* text,
-                                                  float rec_width, float fontSize,
+float AzulindoScreen::MeasureWrappedContentHeight(Font font, const char *text,
+                                                  float rec_width,
+                                                  float fontSize,
                                                   float spacing) const {
   int length = TextLength(text);
   float textOffsetY = 0;
@@ -428,12 +423,13 @@ float AzulindoScreen::MeasureWrappedContentHeight(Font font, const char* text,
 Rectangle AzulindoScreen::DialogueTextArea() const {
   return {dialogue_bounds_.x + LayoutConfig::DialogueConfig::text_margin_x,
           dialogue_bounds_.y + LayoutConfig::DialogueConfig::text_margin_top,
-          dialogue_bounds_.width - LayoutConfig::DialogueConfig::text_margin_total_x,
-          dialogue_bounds_.height - LayoutConfig::DialogueConfig::text_margin_bottom};
+          dialogue_bounds_.width -
+              LayoutConfig::DialogueConfig::text_margin_total_x,
+          dialogue_bounds_.height -
+              LayoutConfig::DialogueConfig::text_margin_bottom};
 }
 
-// method from raylib examples
-void AzulindoScreen::DrawTextWrapped(Font font, const char* text, Rectangle rec,
+void AzulindoScreen::DrawTextWrapped(Font font, const char *text, Rectangle rec,
                                      float fontSize, float spacing,
                                      Color color) const {
   int length = TextLength(text);
@@ -485,7 +481,7 @@ void AzulindoScreen::DrawTextWrapped(Font font, const char* text, Rectangle rec,
         i = startLine;
         glyphWidth = 0;
       }
-    } else {  // DRAW_STATE
+    } else {
       if (codepoint != '\n') {
         if ((textOffsetY + font.baseSize * scaleFactor) > rec.height) break;
 

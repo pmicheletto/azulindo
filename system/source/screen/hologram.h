@@ -1,12 +1,12 @@
-#ifndef HOLOGRAM_H
-#define HOLOGRAM_H
+#ifndef HOLOGRAM_H_
+#define HOLOGRAM_H_
 
-#include "raylib.h"
 #include "configs/layout_config.h"
+#include "raylib.h"
 
 class Hologram {
  public:
-  Hologram(const char* modelPath);
+  explicit Hologram(const char *model_path);
   ~Hologram();
 
   void Update(float dt);
@@ -18,4 +18,4 @@ class Hologram {
   float rotation_;
 };
 
-#endif  // HOLOGRAM_H
+#endif  // HOLOGRAM_H_

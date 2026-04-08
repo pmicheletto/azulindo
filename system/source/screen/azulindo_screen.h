@@ -3,8 +3,8 @@
 
 #include <unistd.h>
 
-#include <atomic>
 #include <algorithm>
+#include <atomic>
 #include <condition_variable>
 #include <fstream>
 #include <memory>
@@ -13,9 +13,9 @@
 #include <string>
 #include <thread>
 
+#include "configs/layout_config.h"
 #include "core/state_emotion/emotion_profile.h"
 #include "hologram.h"
-#include "configs/layout_config.h"
 #include "raylib.h"
 #include "raymath.h"
 
@@ -26,9 +26,11 @@ class AzulindoScreen {
 
   void Update(float delta_time);
   void Draw();
+
   void SetEmotion(EmotionState emotion);
-  void AppendAiText(const std::string& text);
+  void AppendAiText(const std::string &text);
   void ClearAiText();
+
   void SetPauseWaveWhileAiOutput(bool pause);
   bool IsAiTextPipelineBusy() const;
 
@@ -40,11 +42,14 @@ class AzulindoScreen {
   void DrawDialogueBox() const;
   void DrawHud() const;
   void DrawWave() const;
-  void DrawTextWrapped(Font font, const char* text, Rectangle rec,
+
+  void DrawTextWrapped(Font font, const char *text, Rectangle rec,
                        float fontSize, float spacing, Color color) const;
-  float MeasureWrappedContentHeight(Font font, const char* text, float rec_width,
-                                    float fontSize, float spacing) const;
+  float MeasureWrappedContentHeight(Font font, const char *text,
+                                    float rec_width, float fontSize,
+                                    float spacing) const;
   Rectangle DialogueTextArea() const;
+
   void TextIngestLoop();
 
   int screen_width_;
@@ -53,18 +58,17 @@ class AzulindoScreen {
   float timer_ = 0.0f;
 
   std::string ai_response_ = "AZULINDO: Sistema inicializado...";
+  mutable std::mutex text_mutex_;
 
   Rectangle dialogue_bounds_;
+  std::mutex layout_mutex_;
+  Rectangle dialogue_text_area_{};
+
   EmotionState current_emotion_ = EmotionState::kIdle;
   EmotionState target_emotion_ = EmotionState::kIdle;
-
   WaveConfig wave_config_;
 
   std::unique_ptr<Hologram> car_hologram_;
-
-  mutable std::mutex text_mutex_;
-  std::mutex layout_mutex_;
-  Rectangle dialogue_text_area_{};
 
   std::thread text_worker_;
   std::atomic<bool> text_worker_running_{true};
@@ -72,6 +76,7 @@ class AzulindoScreen {
   std::condition_variable ingest_cv_;
   std::queue<std::string> text_ingest_queue_;
   std::atomic<bool> text_ingest_active_{false};
+
   bool pause_wave_while_ai_output_ = false;
 };
 

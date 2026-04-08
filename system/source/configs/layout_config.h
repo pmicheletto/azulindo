@@ -4,8 +4,6 @@
 #include "raylib.h"
 #include "raymath.h"
 
-// Centralized layout and style configuration for the UI.
-// Moved to interface/source/configs so it can be shared by multiple modules.
 class LayoutConfig {
  public:
   struct BackgroundConfig {
@@ -23,8 +21,9 @@ class LayoutConfig {
 
   struct DialogueConfig {
     // Responsive: use percentages of screen dimensions
-    static constexpr float position_x_percent = 0.03f;         // 3% from left
-    static constexpr float position_y_offset_percent = 0.15f;  // 15% from bottom
+    static constexpr float position_x_percent = 0.03f;  // 3% from left
+    static constexpr float position_y_offset_percent =
+        0.15f;                                      // 15% from bottom
     static constexpr float width_percent = 0.35f;   // 35% of screen width
     static constexpr float height_percent = 0.18f;  // 18% of screen height
     static constexpr float min_width = 300.0f;
@@ -53,14 +52,17 @@ class LayoutConfig {
     static constexpr float system_margin_x_min = 10.0f;
     static constexpr float system_margin_y_min = 10.0f;
     static constexpr int system_title_font_size = 15;
-    static constexpr float engine_margin_y_offset = 20.0f;  // Fixed offset from system text
+    static constexpr float engine_margin_y_offset =
+        20.0f;  // Fixed offset from system text
     static constexpr int engine_font_size = 12;
 
-    static constexpr float logs_panel_width_percent = 0.20f;  // 20% of screen width
+    static constexpr float logs_panel_width_percent =
+        0.20f;  // 20% of screen width
     static constexpr float logs_panel_width_min = 180.0f;
     static constexpr float logs_panel_width_max = 300.0f;
     static constexpr float logs_panel_height = 80.0f;
-    static constexpr float logs_panel_margin_x_percent = 0.015f;  // 1.5% from right edge
+    static constexpr float logs_panel_margin_x_percent =
+        0.015f;  // 1.5% from right edge
     static constexpr float logs_panel_margin_x_min = 10.0f;
     static constexpr float logs_title_margin_y = 10.0f;
     static constexpr int logs_font_size = 10;

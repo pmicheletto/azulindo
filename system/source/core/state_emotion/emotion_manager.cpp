@@ -1,6 +1,6 @@
 #include "emotion_manager.h"
 
-EmotionManager& EmotionManager::Instance() {
+EmotionManager &EmotionManager::Instance() {
   static EmotionManager instance;
   return instance;
 }
@@ -15,6 +15,6 @@ EmotionState EmotionManager::GetCurrentState() const {
   return current_state_;
 }
 
-const EmotionProfile& EmotionManager::GetCurrentProfile() const {
+const EmotionProfile &EmotionManager::GetCurrentProfile() const {
   return GetEmotionProfile(GetCurrentState());
 }
