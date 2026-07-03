@@ -136,7 +136,9 @@ void Brain::ProcessTask(const std::string &input) {
     return;
   }
 
-  std::cout << "\n[DEBUG] Prompt received, tokenizing..." << std::endl;
+  std::cout << "\n[DEBUG] Sent to AI:\n----------\n"
+            << input << "\n----------\n"
+            << "[DEBUG] Tokenizing..." << std::endl;
 
   const llama_vocab *vocab = llama_model_get_vocab(model);
 
