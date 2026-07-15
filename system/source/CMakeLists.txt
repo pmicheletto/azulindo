@@ -32,7 +32,13 @@ target_link_libraries(azulindo_core PUBLIC
 
 add_library(azulindo_ui STATIC
     screen/azulindo_screen.cpp
+    screen/ai_text_pipeline.cpp
+    screen/dialogue_panel.cpp
+    screen/emotion_animator.cpp
     screen/hologram.cpp
+    screen/hud_panel.cpp
+    screen/text_layout.cpp
+    screen/wave_renderer.cpp
 )
 
 set_target_properties(azulindo_ui PROPERTIES
@@ -53,6 +59,11 @@ target_link_libraries(azulindo_ui PUBLIC
 add_executable(azulindo_app
     main.cpp
     app/azulindo_application.cpp
+    app/emotion_hotkeys.cpp
+    app/prompt_controller.cpp
+    app/status_overlay.cpp
+    app/token_stream_controller.cpp
+    app/utf8_input.cpp
 )
 
 set_target_properties(azulindo_app PROPERTIES

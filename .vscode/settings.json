@@ -2,7 +2,7 @@
     "cmake.sourceDirectory": "/mnt/hd/azulindo/llama.cpp/examples",
     "clangd.path": "/usr/bin/clangd",
     "clangd.arguments": [
-        "--compile-commands-dir=${workspaceFolder}"
+        "--compile-commands-dir=${workspaceFolder}/system/build"
     ],
     "C_Cpp.intelliSenseEngine": "disabled",
     "files.associations": {

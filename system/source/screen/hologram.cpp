@@ -25,7 +25,7 @@ void Hologram::Draw(Color color) {
   using AConfig = LayoutConfig::HologramConfig::AnimationConfig;
 
   BeginMode3D(camera_);
-
+  // DrawGrid(10, 1.0f); // if necessary for while debugging
   const Color hologram_color = Fade(color, AConfig::color_fade_alpha);
 
   const Vector3 model_position = {HModel::position_x, HModel::position_y,
@@ -36,7 +36,10 @@ void Hologram::Draw(Color color) {
   const Vector3 model_scale = {HModel::scale_x, HModel::scale_y,
                                HModel::scale_z};
 
-  DrawModelWiresEx(model_, model_position, model_rotation_axis, rotation_,
-                   model_scale, hologram_color);
+  // TODO: decide between DrawModelWiresEx and DrawModelEx
+  // DrawModelWiresEx(model_, model_position, model_rotation_axis, rotation_,
+  //                  model_scale, hologram_color);
+  DrawModelEx(model_, model_position, model_rotation_axis, rotation_,
+              model_scale, hologram_color);
   EndMode3D();
 }

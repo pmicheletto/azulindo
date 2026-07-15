@@ -1,12 +1,10 @@
 #ifndef AZULINDO_APP_AZULINDO_APPLICATION_H_
 #define AZULINDO_APP_AZULINDO_APPLICATION_H_
 
-#include <string>
-
+#include "app/prompt_controller.h"
+#include "app/status_overlay.h"
+#include "app/token_stream_controller.h"
 #include "configs/app_config.h"
-
-class Brain;
-class AzulindoScreen;
 
 class AzulindoApplication {
  public:
@@ -17,17 +15,12 @@ class AzulindoApplication {
   int Run();
 
  private:
-  void DrainTokensThrottled(Brain &brain, AzulindoScreen &screen, float dt);
-  void UpdatePromptInput(Brain &brain, AzulindoScreen &screen);
-  void DrawPromptBar(const Brain &brain) const;
-  void DrawStatusOverlay(const Brain &brain) const;
-
   int initial_width_;
   int initial_height_;
 
-  std::string prompt_input_;
-  float token_display_cooldown_ = 0.0f;
-  bool prompt_focus_ = false;
+  PromptController prompt_;
+  TokenStreamController tokens_;
+  StatusOverlay status_;
 };
 
 #endif

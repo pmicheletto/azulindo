@@ -1,23 +1,17 @@
 #ifndef AZULINDO_SCREEN_H_
 #define AZULINDO_SCREEN_H_
 
-#include <unistd.h>
-
-#include <algorithm>
-#include <atomic>
-#include <condition_variable>
-#include <fstream>
 #include <memory>
-#include <mutex>
-#include <queue>
 #include <string>
-#include <thread>
 
-#include "configs/layout_config.h"
-#include "core/state_emotion/emotion_profile.h"
-#include "hologram.h"
-#include "raylib.h"
-#include "raymath.h"
+#include "core/state_emotion/emotion.h"
+#include "screen/ai_text_pipeline.h"
+#include "screen/dialogue_panel.h"
+#include "screen/emotion_animator.h"
+#include "screen/hud_panel.h"
+#include "screen/wave_renderer.h"
+
+class Hologram;
 
 class AzulindoScreen {
  public:
@@ -35,49 +29,19 @@ class AzulindoScreen {
   bool IsAiTextPipelineBusy() const;
 
  private:
-  void UpdateLayout();
-  void UpdateEmotion(float delta_time);
-
+  void RefreshScreenSize();
   void DrawBackgroundLines() const;
-  void DrawDialogueBox() const;
-  void DrawHud() const;
-  void DrawWave() const;
-
-  void DrawTextWrapped(Font font, const char *text, Rectangle rec,
-                       float fontSize, float spacing, Color color) const;
-  float MeasureWrappedContentHeight(Font font, const char *text,
-                                    float rec_width, float fontSize,
-                                    float spacing) const;
-  Rectangle DialogueTextArea() const;
-
-  void TextIngestLoop();
 
   int screen_width_;
   int screen_height_;
   bool use_full_screen_;
-  float timer_ = 0.0f;
 
-  std::string ai_response_ = "AZULINDO: Sistema inicializado...";
-  mutable std::mutex text_mutex_;
-
-  Rectangle dialogue_bounds_;
-  std::mutex layout_mutex_;
-  Rectangle dialogue_text_area_{};
-
-  EmotionState current_emotion_ = EmotionState::kIdle;
-  EmotionState target_emotion_ = EmotionState::kIdle;
-  WaveConfig wave_config_;
-
-  std::unique_ptr<Hologram> car_hologram_;
-
-  std::thread text_worker_;
-  std::atomic<bool> text_worker_running_{true};
-  mutable std::mutex ingest_mutex_;
-  std::condition_variable ingest_cv_;
-  std::queue<std::string> text_ingest_queue_;
-  std::atomic<bool> text_ingest_active_{false};
-
-  bool pause_wave_while_ai_output_ = false;
+  EmotionAnimator emotion_;
+  WaveRenderer wave_;
+  HudPanel hud_;
+  DialoguePanel dialogue_;
+  AiTextPipeline text_pipeline_;
+  std::unique_ptr<Hologram> hologram_;
 };
 
 #endif  // AZULINDO_SCREEN_H_
