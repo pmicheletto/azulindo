@@ -1,15 +1,13 @@
-#ifndef INTERFACE_SOURCE_CONFIGS_LAYOUT_CONFIG_H_
-#define INTERFACE_SOURCE_CONFIGS_LAYOUT_CONFIG_H_
+#ifndef AZULINDO_CONFIGS_LAYOUT_CONFIG_H_
+#define AZULINDO_CONFIGS_LAYOUT_CONFIG_H_
 
 #include "raylib.h"
 #include "raymath.h"
 
-// Centralized layout and style configuration for the UI.
-// Moved to interface/source/configs so it can be shared by multiple modules.
 class LayoutConfig {
  public:
   struct BackgroundConfig {
-    static constexpr int line_spacing = 4;
+    static constexpr int line_spacing = 5; // lines of text in the background
     static constexpr int line_thickness = 1;
   };
 
@@ -22,24 +20,24 @@ class LayoutConfig {
   };
 
   struct DialogueConfig {
-    // Responsive: use percentages of screen dimensions
-    static constexpr float position_x_percent = 0.03f;         // 3% from left
-    static constexpr float position_y_offset_percent = 0.15f;  // 15% from bottom
-    static constexpr float width_percent = 0.35f;   // 35% of screen width
-    static constexpr float height_percent = 0.18f;  // 18% of screen height
-    static constexpr float min_width = 300.0f;
-    static constexpr float max_width = 600.0f;
-    static constexpr float min_height = 100.0f;
-    static constexpr float max_height = 200.0f;
+    static constexpr float position_x_percent = 0.03f;
+    static constexpr float position_y_offset_percent = 0.15f;
+    static constexpr float width_percent = 0.48f;
+    static constexpr float height_percent = 0.32f;
+    static constexpr float min_width = 360.0f;
+    static constexpr float max_width = 820.0f;
+    static constexpr float min_height = 160.0f;
+    static constexpr float max_height = 360.0f;
 
     static constexpr float title_margin_x = 10.0f;
     static constexpr float title_margin_y = 10.0f;
     static constexpr int title_font_size = 12;
 
     static constexpr float text_margin_x = 12.0f;
-    static constexpr float text_margin_top = 35.0f;
+    static constexpr float text_margin_top = 32.0f;
     static constexpr float text_margin_total_x = 24.0f;
-    static constexpr float text_margin_bottom = 45.0f;
+    // Smaller bottom margin = more room before the speech box resets.
+    static constexpr float text_margin_bottom = 18.0f;
 
     static constexpr float text_font_size = 16.0f;
     static constexpr float text_letter_spacing = 1.5f;
@@ -47,44 +45,68 @@ class LayoutConfig {
   };
 
   struct HudConfig {
-    // Responsive: use percentages and minimum values
-    static constexpr float system_margin_x_percent = 0.015f;  // 1.5% from left
-    static constexpr float system_margin_y_percent = 0.015f;  // 1.5% from top
+    static constexpr float system_margin_x_percent = 0.015f;
+    static constexpr float system_margin_y_percent = 0.015f;
     static constexpr float system_margin_x_min = 10.0f;
     static constexpr float system_margin_y_min = 10.0f;
     static constexpr int system_title_font_size = 15;
-    static constexpr float engine_margin_y_offset = 20.0f;  // Fixed offset from system text
+    static constexpr float engine_margin_y_offset = 20.0f;
     static constexpr int engine_font_size = 12;
 
-    static constexpr float logs_panel_width_percent = 0.20f;  // 20% of screen width
+    static constexpr const char *kSystemActive = "SYSTEM: AZULINDO ACTIVE";
+    static constexpr const char *kSystemLoading = "SYSTEM: LOADING LLM MODEL";
+    static constexpr const char *kSystemOffline = "SYSTEM: LLM OFFLINE";
+    static constexpr const char *kEngineOnline = "ENGINE: ONLINE";
+    static constexpr const char *kEngineBooting = "ENGINE: BOOTING";
+    static constexpr const char *kEngineOffline = "ENGINE: OFFLINE";
+    static constexpr const char *kLogsTitle = "AZULINDO LOGS:";
+    static constexpr const char *kCoreOnline = "- Core: OK";
+    static constexpr const char *kCoreLoading = "- Core: LOADING LLM";
+    static constexpr const char *kCoreOffline = "- Core: LLM OFFLINE";
+    static constexpr const char *kSystemRamFormat = "- System RAM: %.1f MB";
+    static constexpr const char *kLlmFormat = "- LLM: %s";
+    static constexpr const char *kLlmLoading = "- LLM: LOADING";
+    static constexpr const char *kLlmOffline = "- LLM: OFFLINE";
+
+    static constexpr float logs_panel_width_percent = 0.20f;
     static constexpr float logs_panel_width_min = 180.0f;
     static constexpr float logs_panel_width_max = 300.0f;
     static constexpr float logs_panel_height = 80.0f;
-    static constexpr float logs_panel_margin_x_percent = 0.015f;  // 1.5% from right edge
+    static constexpr float logs_panel_margin_x_percent = 0.015f;
     static constexpr float logs_panel_margin_x_min = 10.0f;
+    static constexpr float logs_panel_padding_x = 10.0f;
     static constexpr float logs_title_margin_y = 10.0f;
     static constexpr int logs_font_size = 10;
-    static constexpr float logs_line_spacing = 20.0f;
     static constexpr float logs_first_line_y = 25.0f;
     static constexpr float logs_second_line_y = 40.0f;
     static constexpr float logs_third_line_y = 55.0f;
   };
 
+  struct LanguageSelectorConfig {
+    static constexpr int font_size = 14;
+    static constexpr float top_margin = 10.0f;
+    static constexpr float hit_padding_x = 8.0f;
+    static constexpr float hit_padding_y = 4.0f;
+    static constexpr float separator_gap = 6.0f;
+    static constexpr const char *kLabelBr = "BR";
+    static constexpr const char *kLabelSeparator = "|";
+    static constexpr const char *kLabelEn = "EN";
+  };
+
   struct WaveLayoutConfig {
-    static constexpr float vertical_offset_percent = 0.08f;  // 8% from center
-    static constexpr float vertical_offset_min = 30.0f;
-    static constexpr float vertical_offset_max = 100.0f;
-    static constexpr int x_step = 2;
+    // Larger offset = wave higher on screen (y = center - offset).
+    static constexpr float vertical_offset_percent = 0.18f;
+    static constexpr float vertical_offset_min = 50.0f;
+    static constexpr float vertical_offset_max = 160.0f;
+    static constexpr int x_step = 3; // fewer DrawLine calls (important on software GL). - maybe 8
     static constexpr float pulse_min = 0.1f;
     static constexpr float pulse_max = 0.9f;
-    static constexpr float phase_offset = PI / 2.0f;  // PI from raymath.h
+    static constexpr float phase_offset = PI / 2.0f;
     static constexpr float fade_alpha = 0.1f;
-    static constexpr int max_layers = 3;
-    static constexpr int base_radius = 4;
   };
 
   struct EmotionTransitionConfig {
-    static constexpr float threshold = 0.0001f;
+    static constexpr float kDensityThreshold = 0.001f;
   };
 
   struct TextWrapConfig {
@@ -93,14 +115,15 @@ class LayoutConfig {
   };
 
   struct MemoryConfig {
-    static constexpr int rss_field_index = 24;
     static constexpr int fields_before_rss = 23;
-    static constexpr float bytes_to_kilobytes = 1024.0f;
-    static constexpr float kilobytes_to_megabytes = 1024.0f;
-    static constexpr int ram_text_buffer_size = 32;
+    static constexpr int ram_text_buffer_size = 40;
+    static constexpr int llm_text_buffer_size = 64;
+    static constexpr double rss_sample_interval_seconds = 0.5;
   };
 
   struct HologramConfig {
+    static constexpr const char *kModelFilename = "azulindo.glb";
+
     struct CameraConfig {
       static constexpr float position_x = 0.0f;
       static constexpr float position_y = 0.5f;
@@ -116,7 +139,7 @@ class LayoutConfig {
 
     struct ModelConfig {
       static constexpr float position_x = 0.6f;
-      static constexpr float position_y = -0.36f;
+      static constexpr float position_y = -0.26f;
       static constexpr float position_z = 0.4f;
       static constexpr float rotation_axis_x = 0.0f;
       static constexpr float rotation_axis_y = 1.0f;
@@ -128,13 +151,9 @@ class LayoutConfig {
 
     struct AnimationConfig {
       static constexpr float rotation_speed_degrees_per_second = 45.0f;
-      static constexpr float color_fade_alpha = 0.2f;
+      static constexpr float color_fade_alpha = 0.5f;
     };
-  };
-
-  struct LayoutMath {
-    static constexpr int center_divisor = 2;
   };
 };
 
-#endif  // INTERFACE_SOURCE_CONFIGS_LAYOUT_CONFIG_H_
+#endif  // AZULINDO_CONFIGS_LAYOUT_CONFIG_H_

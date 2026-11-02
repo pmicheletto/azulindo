@@ -1,66 +1,80 @@
 # Azulindo
 
-Azulindo is a personal **offline car AI project** focused on building an interactive visual interface using **C++ and Raylib**.  
-The project also includes experiments with local AI inference using **llama.cpp**.
+Azulindo is an offline AI companion application written in C++20, built with
+raylib and llama.cpp.
 
-The goal is to create an AI that represents the *personality of the car*, visually and behaviorally reacting to passenger interactions and internal system states.
+## Setup and build
 
-The interface visually reflects the AI state, where motion and behavior communicate how the system is processing information.
+### Requirements
 
----
+On Debian or Ubuntu, install a C++20 compiler, CMake 3.25 or newer, Git, and
+Linux desktop development libraries:
 
-## Project organization and vision
+```sh
+sudo apt update
+sudo apt install build-essential cmake git pkg-config \
+  libgl1-mesa-dev libx11-dev libxrandr-dev libxinerama-dev \
+  libxcursor-dev libxi-dev
+```
 
-Azulindo is designed as a fully offline AI system that acts as a digital personality for the car.  
-The system reacts to passenger input while also storing mechanical and usage-related information, such as oil change dates and part replacements.
+Clone the repository and its dependencies:
 
-Development follows an incremental and modular approach, divided into the following stages:
+```sh
+git clone --recurse-submodules https://github.com/pmicheletto/azulindo.git
+cd azulindo
+```
 
-### 1. User Interface (UI)
-- Build the visual interface using **Raylib**
-- Define screen dynamics and visual reactions to speech and system activity
-- Establish visual behavior as the foundation of the AI’s emotional and behavioral expression
+If the submodules were not cloned, initialize them with:
 
-### 2. Local LLM experiments
-- Test different local LLMs after a minimal interactive UI is established
-- Focus on embeddability and resource usage, especially **RAM consumption**
-- Use **llama.cpp** as the base for local inference experiments
+```sh
+git submodule update --init --recursive
+```
 
-### 3. Speech pipeline
-- **Speech-to-Text**: listening and transcribing spoken input
-- Feeding the transcribed input into the **LLM** for processing and response generation
-- **Text-to-Speech**: verbal system responses
+Configure and build from the repository root:
 
-### 4. State & memory
-- Store mechanical and usage information
-- Maintain short- and long-term contextual data for interactions and behavior
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel 2
+```
 
-Each stage is developed incrementally, keeping the system modular, testable, and adaptable for future expansion.
+The executable is created at `build/bin/azulindo_app`. See [BUILDING.md](BUILDING.md)
+for Raspberry Pi and DRM-specific instructions.
 
----
+## Run
 
-## Tech stack
+From the repository root, run the app with an available GGUF model:
 
-- **C++**
-- **Raylib** – graphics and interaction
-- **llama.cpp** – local LLM inference
-- **CMake** – build system
+```sh
+./build/bin/azulindo_app path/to/model.gguf
+```
 
----
+When no model path is provided, the application uses its configured default,
+`Qwen3-1.7B-Q4_K_M.gguf`. If that file is not available, pass the path to a
+compatible local model. Model weights are distributed under their own terms;
+check those terms before redistributing them.
 
-## Status
+### Download the default model
 
-🚧 Early development  
-Current focus: visual behavior, modular architecture, and interface dynamics.
+The model file is about 1.3 GB and is intentionally not stored in this Git
+repository. From the repository root, download the Q4_K_M quantization from the
+`ggml-org` Hugging Face repository:
 
----
+```sh
+mkdir -p models
+curl -L --fail --output models/Qwen3-1.7B-Q4_K_M.gguf \
+  "https://huggingface.co/ggml-org/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q4_K_M.gguf"
+```
 
-## Wave system (early tests)
+The model repository identifies the model as Apache-2.0 licensed. Review the
+[model card and license](https://huggingface.co/ggml-org/Qwen3-1.7B-GGUF) before
+redistributing the weights. Model downloads are not part of CI; CI only
+configures and compiles the application.
 
-Below are early test stages of the wave system, which represent the AI’s emotional and behavioral states through dynamic visual motion.
+## Licensing
 
-![Wave system](docs/interface.gif)
-
-Below is the final result of the first version, demonstrating smooth transitions between different emotional states.
-
-![Wave system](docs/first_version.gif)
+The original Azulindo source code is licensed under the Mozilla Public License
+2.0; see [LICENSE](LICENSE). The license permits commercial use and
+distribution, while requiring source availability under MPL 2.0 for covered
+files that are modified or redistributed. Third-party submodules, model
+weights, and assets may have separate licenses and are not relicensed by this
+project license.

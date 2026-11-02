@@ -1,13 +1,19 @@
-#include "hologram.h"
+#include "screen/hologram.h"
 
-Hologram::Hologram(const char* modelPath) : rotation_(0.0f) {
+#include <iostream>
+
+Hologram::Hologram(const char *model_path) {
   using HConfig = LayoutConfig::HologramConfig::CameraConfig;
 
-  model_ = LoadModel(modelPath);
-  camera_.position = (Vector3){HConfig::position_x, HConfig::position_y,
-                               HConfig::position_z};
-  camera_.target = (Vector3){HConfig::target_x, HConfig::target_y,
-                             HConfig::target_z};
+  model_ = LoadModel(model_path);
+  if (model_.meshCount == 0) {
+    std::cerr << "[hologram] failed to load model: " << model_path << '\n';
+  }
+
+  camera_.position =
+      (Vector3){HConfig::position_x, HConfig::position_y, HConfig::position_z};
+  camera_.target =
+      (Vector3){HConfig::target_x, HConfig::target_y, HConfig::target_z};
   camera_.up = (Vector3){HConfig::up_x, HConfig::up_y, HConfig::up_z};
   camera_.fovy = HConfig::fovy;
   camera_.projection = CAMERA_PERSPECTIVE;
@@ -25,8 +31,8 @@ void Hologram::Draw(Color color) {
   using AConfig = LayoutConfig::HologramConfig::AnimationConfig;
 
   BeginMode3D(camera_);
-  // DrawGrid(10, 1.0f); // if necessary for while debugging
-  Color hologramaColor = Fade(color, AConfig::color_fade_alpha);
+  //DrawGrid(10, 1.0f);  // debug: uncomment to show 3D ground grid
+  const Color hologram_color = Fade(color, AConfig::color_fade_alpha);
 
   const Vector3 model_position = {HModel::position_x, HModel::position_y,
                                   HModel::position_z};
@@ -36,9 +42,10 @@ void Hologram::Draw(Color color) {
   const Vector3 model_scale = {HModel::scale_x, HModel::scale_y,
                                HModel::scale_z};
 
+  // TODO: decide between DrawModelWiresEx and DrawModelEx
   DrawModelWiresEx(model_, model_position, model_rotation_axis, rotation_,
-                   model_scale, hologramaColor);
-  // DrawModelEx(model_, model_position, model_rotation_axis,  //TODO:  decide
-  // which one is better rotation_, model_scale, hologramaColor);
+                   model_scale, hologram_color);
+  // DrawModelEx(model_, model_position, model_rotation_axis, rotation_,
+  //             model_scale, hologram_color);
   EndMode3D();
 }

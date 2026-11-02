@@ -1,53 +1,44 @@
-#ifndef AZULINDO_SCREEN_H_
-#define AZULINDO_SCREEN_H_
+#ifndef AZULINDO_SCREEN_AZULINDO_SCREEN_H_
+#define AZULINDO_SCREEN_AZULINDO_SCREEN_H_
 
-#include <unistd.h>
-
-#include <algorithm>
-#include <fstream>
 #include <memory>
 #include <string>
 
-#include "core/state_emotion/emotion_profile.h"
-#include "hologram.h"
-#include "configs/layout_config.h"
-#include "raylib.h"
-#include "raymath.h"
+#include "core/state_emotion/emotion.h"
+#include "screen/ai_text_pipeline.h"
+#include "screen/dialogue_panel.h"
+#include "screen/emotion_animator.h"
+#include "screen/hud_panel.h"
+#include "screen/wave_renderer.h"
+
+class Hologram;
 
 class AzulindoScreen {
  public:
   AzulindoScreen(int screen_width, int screen_height);
+  ~AzulindoScreen();
 
   void Update(float delta_time);
-  void Draw();
+  void Draw(SystemStatus system_status, const std::string &llm_model);
+
   void SetEmotion(EmotionState emotion);
+  void AppendAiText(const std::string &text);
+  void ClearAiText();
 
  private:
-  void UpdateLayout();
-  void UpdateEmotion(float delta_time);
-
+  void RefreshScreenSize();
   void DrawBackgroundLines() const;
-  void DrawDialogueBox() const;
-  void DrawHud() const;
-  void DrawWave() const;
-  void DrawTextWrapped(Font font, const char* text, Rectangle rec,
-                       float fontSize, float spacing, Color color) const;
 
   int screen_width_;
   int screen_height_;
   bool use_full_screen_;
-  float timer_ = 0.0f;
 
-  char ai_text_[1024] =
-      "AZULINDO: Sistema inicializado. Aguardando comandos...";
-
-  Rectangle dialogue_bounds_;
-  EmotionState current_emotion_ = EmotionState::kIdle;
-  EmotionState target_emotion_ = EmotionState::kIdle;
-
-  WaveConfig wave_config_;
-
-  std::unique_ptr<Hologram> car_hologram_;
+  EmotionAnimator emotion_;
+  WaveRenderer wave_;
+  HudPanel hud_;
+  DialoguePanel dialogue_;
+  AiTextPipeline text_pipeline_;
+  std::unique_ptr<Hologram> hologram_;
 };
 
-#endif  // AZULINDO_SCREEN_H_
+#endif  // AZULINDO_SCREEN_AZULINDO_SCREEN_H_
