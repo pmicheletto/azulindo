@@ -10,7 +10,6 @@ set(AZULINDO_INCLUDE_DIRS
 add_library(azulindo_core STATIC
     core/brain/brain.cpp
     core/state_emotion/emotion_profile.cpp
-    core/state_emotion/emotion_manager.cpp
 )
 
 set_target_properties(azulindo_core PROPERTIES
@@ -48,18 +47,19 @@ set_target_properties(azulindo_ui PROPERTIES
 
 target_include_directories(azulindo_ui PUBLIC
     ${AZULINDO_INCLUDE_DIRS}
-    ${AZULINDO_SOURCE_DIR}/screen
 )
 
-target_link_libraries(azulindo_ui PUBLIC
-    azulindo_core
-    raylib
+# Emotion profiles live in core; keep llama out of the public UI link surface.
+target_link_libraries(azulindo_ui
+    PUBLIC raylib
+    PRIVATE azulindo_core
 )
 
 add_executable(azulindo_app
     main.cpp
     app/azulindo_application.cpp
     app/emotion_hotkeys.cpp
+    app/language_selector.cpp
     app/prompt_controller.cpp
     app/status_overlay.cpp
     app/token_stream_controller.cpp
@@ -73,10 +73,15 @@ set_target_properties(azulindo_app PROPERTIES
 
 target_link_libraries(azulindo_app PRIVATE
     azulindo_ui
+    azulindo_core
 )
 
-if(NOT APPLE AND NOT WIN32)
-    target_link_libraries(azulindo_app PRIVATE GLESv2 EGL drm gbm)
+if(PLATFORM STREQUAL "DRM")
+    target_compile_definitions(azulindo_app PRIVATE AZULINDO_PLATFORM_DRM)
 endif()
+
+set_target_properties(azulindo_app PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

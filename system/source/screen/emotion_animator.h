@@ -12,7 +12,6 @@ class EmotionAnimator {
   void Update(float delta_time);
 
   const WaveConfig &wave_config() const { return wave_config_; }
-  EmotionState current_emotion() const { return current_emotion_; }
 
  private:
   EmotionState current_emotion_ = EmotionState::kIdle;

@@ -8,7 +8,8 @@ AzulindoScreen::AzulindoScreen(int screen_width, int screen_height)
       screen_height_(screen_height),
       use_full_screen_(screen_width <= 0 || screen_height <= 0),
       text_pipeline_(dialogue_),
-      hologram_(std::make_unique<Hologram>("azulindo.glb")) {
+      hologram_(std::make_unique<Hologram>(
+          LayoutConfig::HologramConfig::kModelFilename)) {
   RefreshScreenSize();
   dialogue_.UpdateLayout(screen_width_, screen_height_);
 }
@@ -33,12 +34,13 @@ void AzulindoScreen::Update(float delta_time) {
   hologram_->Update(delta_time);
 }
 
-void AzulindoScreen::Draw() {
+void AzulindoScreen::Draw(SystemStatus system_status,
+                          const std::string &llm_model) {
   ClearBackground(LayoutConfig::ColorConfig::background);
   DrawBackgroundLines();
   wave_.Draw(screen_width_, screen_height_, emotion_.wave_config());
-  hud_.Draw(screen_width_, screen_height_);
-  dialogue_.Draw(text_pipeline_.Snapshot());
+  hud_.Draw(screen_width_, screen_height_, system_status, llm_model);
+  dialogue_.Draw(text_pipeline_.text());
   hologram_->Draw(emotion_.wave_config().wave_color);
 }
 
@@ -60,11 +62,3 @@ void AzulindoScreen::AppendAiText(const std::string &text) {
 }
 
 void AzulindoScreen::ClearAiText() { text_pipeline_.Clear(); }
-
-void AzulindoScreen::SetPauseWaveWhileAiOutput(bool pause) {
-  wave_.SetPaused(pause);
-}
-
-bool AzulindoScreen::IsAiTextPipelineBusy() const {
-  return text_pipeline_.IsBusy();
-}

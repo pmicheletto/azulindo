@@ -1,5 +1,5 @@
-#ifndef INTERFACE_SOURCE_CONFIGS_WAVE_CONFIG_H_
-#define INTERFACE_SOURCE_CONFIGS_WAVE_CONFIG_H_
+#ifndef AZULINDO_CONFIGS_WAVE_CONFIG_H_
+#define AZULINDO_CONFIGS_WAVE_CONFIG_H_
 
 #include "raylib.h"
 
@@ -15,7 +15,6 @@ struct WaveConfig {
   float harmonic_speed = 2.0f;  // Controls how fast the harmonic wave animates
 
   Color wave_color = SKYBLUE;
-  Color glow_color = {80, 160, 255, 200};
 };
 
-#endif  // INTERFACE_SOURCE_CONFIGS_WAVE_CONFIG_H_
+#endif  // AZULINDO_CONFIGS_WAVE_CONFIG_H_

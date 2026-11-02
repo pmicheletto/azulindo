@@ -1,8 +1,8 @@
-#ifndef AZULINDO_EMOTION_PROFILE_H_
-#define AZULINDO_EMOTION_PROFILE_H_
+#ifndef AZULINDO_CORE_STATE_EMOTION_EMOTION_PROFILE_H_
+#define AZULINDO_CORE_STATE_EMOTION_EMOTION_PROFILE_H_
 
 #include "configs/wave_config.h"
-#include "emotion.h"
+#include "core/state_emotion/emotion.h"
 
 struct EmotionProfile {
   WaveConfig wave;
@@ -11,4 +11,4 @@ struct EmotionProfile {
 
 const EmotionProfile &GetEmotionProfile(EmotionState state);
 
-#endif  // AZULINDO_EMOTION_PROFILE_H_
+#endif  // AZULINDO_CORE_STATE_EMOTION_EMOTION_PROFILE_H_

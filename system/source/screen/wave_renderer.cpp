@@ -6,15 +6,7 @@
 #include "configs/layout_config.h"
 #include "raylib.h"
 
-void WaveRenderer::ResetTimer() { timer_ = 0.0f; }
-
-void WaveRenderer::SetPaused(bool paused) { paused_ = paused; }
-
-void WaveRenderer::Update(float delta_time) {
-  if (!paused_) {
-    timer_ += delta_time;
-  }
-}
+void WaveRenderer::Update(float delta_time) { timer_ += delta_time; }
 
 void WaveRenderer::Draw(int screen_width, int screen_height,
                         const WaveConfig &config) const {
@@ -51,9 +43,9 @@ void WaveRenderer::Draw(int screen_width, int screen_height,
     h1 += harmonic;
     h2 -= harmonic;
 
-    int pos_y1 = wave_position_y + static_cast<int>(h1);
-    int pos_y2 = wave_position_y + static_cast<int>(h2);
-    int pos_x1 = wave_position_x + static_cast<int>(h2);
+    const int pos_y1 = wave_position_y + static_cast<int>(h1);
+    const int pos_y2 = wave_position_y + static_cast<int>(h2);
+    const int pos_x1 = wave_position_x + static_cast<int>(h2);
 
     DrawLine(pos_x1, pos_y1, x, pos_y2,
              Fade(config.wave_color, LayoutConfig::WaveLayoutConfig::fade_alpha));

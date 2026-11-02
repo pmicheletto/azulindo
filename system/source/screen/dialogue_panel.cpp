@@ -18,7 +18,6 @@ void DialoguePanel::UpdateLayout(int screen_width, int screen_height) {
                  LayoutConfig::DialogueConfig::min_height,
                  LayoutConfig::DialogueConfig::max_height);
 
-  std::lock_guard<std::mutex> lock(layout_mutex_);
   bounds_ = {
       sw * LayoutConfig::DialogueConfig::position_x_percent,
       sh - (sh * LayoutConfig::DialogueConfig::position_y_offset_percent) -
@@ -27,7 +26,6 @@ void DialoguePanel::UpdateLayout(int screen_width, int screen_height) {
 }
 
 Rectangle DialoguePanel::TextArea() const {
-  std::lock_guard<std::mutex> lock(layout_mutex_);
   return {bounds_.x + LayoutConfig::DialogueConfig::text_margin_x,
           bounds_.y + LayoutConfig::DialogueConfig::text_margin_top,
           bounds_.width - LayoutConfig::DialogueConfig::text_margin_total_x,
@@ -35,20 +33,14 @@ Rectangle DialoguePanel::TextArea() const {
 }
 
 void DialoguePanel::Draw(const std::string &text) const {
-  Rectangle bounds;
-  {
-    std::lock_guard<std::mutex> lock(layout_mutex_);
-    bounds = bounds_;
-  }
-
-  DrawRectangleRec(bounds, LayoutConfig::ColorConfig::dialogue_box);
-  DrawRectangleLinesEx(bounds, LayoutConfig::DialogueConfig::border_thickness,
+  DrawRectangleRec(bounds_, LayoutConfig::ColorConfig::dialogue_box);
+  DrawRectangleLinesEx(bounds_, LayoutConfig::DialogueConfig::border_thickness,
                        LayoutConfig::ColorConfig::dialogue_border);
 
   const float title_position_x =
-      bounds.x + LayoutConfig::DialogueConfig::title_margin_x;
+      bounds_.x + LayoutConfig::DialogueConfig::title_margin_x;
   const float title_position_y =
-      bounds.y + LayoutConfig::DialogueConfig::title_margin_y;
+      bounds_.y + LayoutConfig::DialogueConfig::title_margin_y;
 
   DrawText("AZULINDO:", static_cast<int>(title_position_x),
            static_cast<int>(title_position_y),
@@ -58,8 +50,7 @@ void DialoguePanel::Draw(const std::string &text) const {
     return;
   }
 
-  const Rectangle text_area = TextArea();
-  TextLayout::DrawTextWrapped(GetFontDefault(), text.c_str(), text_area,
+  TextLayout::DrawTextWrapped(GetFontDefault(), text.c_str(), TextArea(),
                               LayoutConfig::DialogueConfig::text_font_size,
                               LayoutConfig::DialogueConfig::text_letter_spacing,
                               LIGHTGRAY);

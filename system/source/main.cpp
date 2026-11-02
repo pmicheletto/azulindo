@@ -1,3 +1,5 @@
 #include "app/azulindo_application.h"
 
-int main() { return AzulindoApplication{}.Run(); }
+int main(int argc, char **argv) {
+  return AzulindoApplication{}.Run(argc, argv);
+}

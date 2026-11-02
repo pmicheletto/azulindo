@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include "core/state_emotion/emotion_manager.h"
+#include "configs/layout_config.h"
 #include "core/state_emotion/emotion_profile.h"
 #include "raymath.h"
 
@@ -11,11 +11,10 @@ EmotionAnimator::EmotionAnimator() {
 }
 
 void EmotionAnimator::SetEmotion(EmotionState emotion) {
-  EmotionManager::Instance().SetState(emotion);
+  target_emotion_ = emotion;
 }
 
 void EmotionAnimator::Update(float delta_time) {
-  target_emotion_ = EmotionManager::Instance().GetCurrentState();
   const EmotionProfile &target = GetEmotionProfile(target_emotion_);
   const float factor = delta_time * target.transition_speed;
 
@@ -33,10 +32,9 @@ void EmotionAnimator::Update(float delta_time) {
 
   wave_config_.wave_color =
       ColorLerp(wave_config_.wave_color, target.wave.wave_color, factor);
-  wave_config_.glow_color =
-      ColorLerp(wave_config_.glow_color, target.wave.glow_color, factor);
 
-  if (std::abs(wave_config_.wave_density - target.wave.wave_density) < 0.001f) {
+  if (std::abs(wave_config_.wave_density - target.wave.wave_density) <
+      LayoutConfig::EmotionTransitionConfig::kDensityThreshold) {
     current_emotion_ = target_emotion_;
   }
 }

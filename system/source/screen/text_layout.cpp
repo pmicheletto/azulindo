@@ -3,152 +3,114 @@
 #include "configs/layout_config.h"
 
 namespace TextLayout {
+namespace {
 
-float MeasureWrappedContentHeight(Font font, const char *text, float rec_width,
-                                  float font_size, float spacing) {
-  int length = TextLength(text);
-  float textOffsetY = 0;
-  float textOffsetX = 0.0f;
-  float scaleFactor = font_size / (float)font.baseSize;
+enum class WrapPass { kMeasureOnly, kDraw };
 
-  enum { MEASURE_STATE = 0, DRAW_STATE = 1 };
-  int state = MEASURE_STATE;
+float ProcessWrapped(Font font, const char *text, Rectangle rec,
+                     float font_size, float spacing, Color color,
+                     WrapPass pass) {
+  const int length = TextLength(text);
+  float text_offset_y = 0.0f;
+  float text_offset_x = 0.0f;
+  const float scale_factor = font_size / static_cast<float>(font.baseSize);
 
-  int startLine = -1;
-  int endLine = -1;
-
-  for (int i = 0; i < length; i++) {
-    int codepointByteCount = 0;
-    int codepoint = GetCodepoint(&text[i], &codepointByteCount);
-    int index = GetGlyphIndex(font, codepoint);
-
-    if (codepoint == LayoutConfig::TextWrapConfig::unknown_codepoint)
-      codepointByteCount = 1;
-    i += (codepointByteCount - 1);
-
-    float glyphWidth = 0;
-    if (codepoint != '\n') {
-      glyphWidth = (font.glyphs[index].advanceX == 0)
-                       ? font.recs[index].width * scaleFactor
-                       : font.glyphs[index].advanceX * scaleFactor;
-      if (i + 1 < length) glyphWidth += spacing;
-    }
-    if (state == MEASURE_STATE) {
-      if ((codepoint == ' ') || (codepoint == '\t') || (codepoint == '\n'))
-        endLine = i;
-
-      if ((textOffsetX + glyphWidth) > rec_width) {
-        endLine = (endLine < 1) ? i : endLine;
-        if (i == endLine) endLine -= codepointByteCount;
-        if ((startLine + codepointByteCount) == endLine)
-          endLine = (i - codepointByteCount);
-        state = DRAW_STATE;
-      } else if ((i + 1) == length) {
-        endLine = i;
-        state = DRAW_STATE;
-      } else if (codepoint == '\n') {
-        state = DRAW_STATE;
-      }
-
-      if (state == DRAW_STATE) {
-        textOffsetX = 0;
-        i = startLine;
-        glyphWidth = 0;
-      }
-    } else {
-      if (i == endLine) {
-        const float line_height =
-            font.baseSize *
-            LayoutConfig::TextWrapConfig::line_height_multiplier;
-        textOffsetY += line_height * scaleFactor;
-        textOffsetX = 0;
-        startLine = endLine;
-        endLine = -1;
-        glyphWidth = 0;
-        state = MEASURE_STATE;
-      }
-    }
-    if ((textOffsetX != 0) || (codepoint != ' ')) textOffsetX += glyphWidth;
-  }
-  return textOffsetY;
-}
-
-void DrawTextWrapped(Font font, const char *text, Rectangle rec,
-                     float font_size, float spacing, Color color) {
-  int length = TextLength(text);
-  float textOffsetY = 0;
-  float textOffsetX = 0.0f;
-  float scaleFactor = font_size / (float)font.baseSize;
-
-  enum { MEASURE_STATE = 0, DRAW_STATE = 1 };
-  int state = MEASURE_STATE;
-
-  int startLine = -1;
-  int endLine = -1;
+  enum { kMeasureState = 0, kDrawState = 1 };
+  int state = kMeasureState;
+  int start_line = -1;
+  int end_line = -1;
 
   for (int i = 0; i < length; i++) {
-    int codepointByteCount = 0;
-    int codepoint = GetCodepoint(&text[i], &codepointByteCount);
-    int index = GetGlyphIndex(font, codepoint);
+    int codepoint_byte_count = 0;
+    int codepoint = GetCodepoint(&text[i], &codepoint_byte_count);
+    const int index = GetGlyphIndex(font, codepoint);
 
-    if (codepoint == LayoutConfig::TextWrapConfig::unknown_codepoint)
-      codepointByteCount = 1;
-    i += (codepointByteCount - 1);
-
-    float glyphWidth = 0;
-    if (codepoint != '\n') {
-      glyphWidth = (font.glyphs[index].advanceX == 0)
-                       ? font.recs[index].width * scaleFactor
-                       : font.glyphs[index].advanceX * scaleFactor;
-      if (i + 1 < length) glyphWidth += spacing;
+    if (codepoint == LayoutConfig::TextWrapConfig::unknown_codepoint) {
+      codepoint_byte_count = 1;
     }
-    if (state == MEASURE_STATE) {
-      if ((codepoint == ' ') || (codepoint == '\t') || (codepoint == '\n'))
-        endLine = i;
+    i += (codepoint_byte_count - 1);
 
-      if ((textOffsetX + glyphWidth) > rec.width) {
-        endLine = (endLine < 1) ? i : endLine;
-        if (i == endLine) endLine -= codepointByteCount;
-        if ((startLine + codepointByteCount) == endLine)
-          endLine = (i - codepointByteCount);
-        state = DRAW_STATE;
-      } else if ((i + 1) == length) {
-        endLine = i;
-        state = DRAW_STATE;
-      } else if (codepoint == '\n') {
-        state = DRAW_STATE;
+    float glyph_width = 0.0f;
+    if (codepoint != '\n') {
+      glyph_width = (font.glyphs[index].advanceX == 0)
+                        ? font.recs[index].width * scale_factor
+                        : font.glyphs[index].advanceX * scale_factor;
+      if (i + 1 < length) {
+        glyph_width += spacing;
+      }
+    }
+
+    if (state == kMeasureState) {
+      if ((codepoint == ' ') || (codepoint == '\t') || (codepoint == '\n')) {
+        end_line = i;
       }
 
-      if (state == DRAW_STATE) {
-        textOffsetX = 0;
-        i = startLine;
-        glyphWidth = 0;
+      if ((text_offset_x + glyph_width) > rec.width) {
+        end_line = (end_line < 1) ? i : end_line;
+        if (i == end_line) {
+          end_line -= codepoint_byte_count;
+        }
+        if ((start_line + codepoint_byte_count) == end_line) {
+          end_line = (i - codepoint_byte_count);
+        }
+        state = kDrawState;
+      } else if ((i + 1) == length) {
+        end_line = i;
+        state = kDrawState;
+      } else if (codepoint == '\n') {
+        state = kDrawState;
+      }
+
+      if (state == kDrawState) {
+        text_offset_x = 0.0f;
+        i = start_line;
+        glyph_width = 0.0f;
       }
     } else {
-      if (codepoint != '\n') {
-        if ((textOffsetY + font.baseSize * scaleFactor) > rec.height) break;
-
+      if (pass == WrapPass::kDraw && codepoint != '\n') {
+        if ((text_offset_y + font.baseSize * scale_factor) > rec.height) {
+          break;
+        }
         if ((codepoint != ' ') && (codepoint != '\t')) {
           DrawTextCodepoint(font, codepoint,
-                            (Vector2){rec.x + textOffsetX, rec.y + textOffsetY},
+                            (Vector2){rec.x + text_offset_x,
+                                      rec.y + text_offset_y},
                             font_size, color);
         }
       }
 
-      if (i == endLine) {
+      if (i == end_line) {
         const float line_height =
             font.baseSize *
             LayoutConfig::TextWrapConfig::line_height_multiplier;
-        textOffsetY += line_height * scaleFactor;
-        textOffsetX = 0;
-        startLine = endLine;
-        endLine = -1;
-        glyphWidth = 0;
-        state = MEASURE_STATE;
+        text_offset_y += line_height * scale_factor;
+        text_offset_x = 0.0f;
+        start_line = end_line;
+        end_line = -1;
+        glyph_width = 0.0f;
+        state = kMeasureState;
       }
     }
-    if ((textOffsetX != 0) || (codepoint != ' ')) textOffsetX += glyphWidth;
+
+    if ((text_offset_x != 0.0f) || (codepoint != ' ')) {
+      text_offset_x += glyph_width;
+    }
   }
+  return text_offset_y;
+}
+
+}  // namespace
+
+float MeasureWrappedContentHeight(Font font, const char *text, float rec_width,
+                                  float font_size, float spacing) {
+  const Rectangle measure_rect = {0.0f, 0.0f, rec_width, 1.0e9f};
+  return ProcessWrapped(font, text, measure_rect, font_size, spacing, BLANK,
+                        WrapPass::kMeasureOnly);
+}
+
+void DrawTextWrapped(Font font, const char *text, Rectangle rec,
+                     float font_size, float spacing, Color color) {
+  ProcessWrapped(font, text, rec, font_size, spacing, color, WrapPass::kDraw);
 }
 
 }  // namespace TextLayout

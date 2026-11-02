@@ -1,7 +1,6 @@
 #ifndef AZULINDO_SCREEN_DIALOGUE_PANEL_H_
 #define AZULINDO_SCREEN_DIALOGUE_PANEL_H_
 
-#include <mutex>
 #include <string>
 
 #include "raylib.h"
@@ -14,7 +13,6 @@ class DialoguePanel {
 
  private:
   Rectangle bounds_{};
-  mutable std::mutex layout_mutex_;
 };
 
 #endif  // AZULINDO_SCREEN_DIALOGUE_PANEL_H_

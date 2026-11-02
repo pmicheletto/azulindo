@@ -1,5 +1,5 @@
-#ifndef AZULINDO_SCREEN_H_
-#define AZULINDO_SCREEN_H_
+#ifndef AZULINDO_SCREEN_AZULINDO_SCREEN_H_
+#define AZULINDO_SCREEN_AZULINDO_SCREEN_H_
 
 #include <memory>
 #include <string>
@@ -19,14 +19,11 @@ class AzulindoScreen {
   ~AzulindoScreen();
 
   void Update(float delta_time);
-  void Draw();
+  void Draw(SystemStatus system_status, const std::string &llm_model);
 
   void SetEmotion(EmotionState emotion);
   void AppendAiText(const std::string &text);
   void ClearAiText();
-
-  void SetPauseWaveWhileAiOutput(bool pause);
-  bool IsAiTextPipelineBusy() const;
 
  private:
   void RefreshScreenSize();
@@ -44,4 +41,4 @@ class AzulindoScreen {
   std::unique_ptr<Hologram> hologram_;
 };
 
-#endif  // AZULINDO_SCREEN_H_
+#endif  // AZULINDO_SCREEN_AZULINDO_SCREEN_H_

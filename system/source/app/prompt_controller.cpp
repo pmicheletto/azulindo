@@ -3,12 +3,16 @@
 #include "app/prompt_builder.h"
 #include "app/utf8_input.h"
 #include "configs/app_config.h"
+#include "configs/prompt_config.h"
 #include "core/brain/brain.h"
 #include "core/state_emotion/emotion.h"
 #include "raylib.h"
 #include "screen/azulindo_screen.h"
 
-bool PromptController::Update(Brain &brain, AzulindoScreen &screen) {
+bool PromptController::Update(Brain &brain, AzulindoScreen &screen,
+                              PromptConfig::Language language) {
+  language_ = language;
+
   if (IsKeyPressed(KEY_TAB)) {
     focused_ = !focused_;
     return false;
@@ -30,11 +34,13 @@ bool PromptController::Update(Brain &brain, AzulindoScreen &screen) {
       focused_ = false;
       return false;
     }
-    if (!brain.LlamaReady()) {
+    if (!brain.IsReady()) {
       return false;
     }
-    const std::string full = PromptBuilder::BuildChatml(input_);
+    const std::string full =
+        PromptBuilder::BuildChatml(input_, history_, language_);
     if (brain.RequestInference(full)) {
+      pending_user_ = input_;
       screen.ClearAiText();
       screen.SetEmotion(EmotionState::kThinking);
       input_.clear();
@@ -61,6 +67,24 @@ bool PromptController::Update(Brain &brain, AzulindoScreen &screen) {
   return false;
 }
 
+void PromptController::OnAssistantReply(std::string reply) {
+  if (pending_user_.empty() || reply.empty()) {
+    pending_user_.clear();
+    return;
+  }
+  history_.push_back(
+      PromptBuilder::Turn{std::move(pending_user_), std::move(reply)});
+  pending_user_.clear();
+  while (history_.size() > PromptConfig::kMaxHistoryTurns) {
+    history_.erase(history_.begin());
+  }
+}
+
+void PromptController::OnLanguageChanged() {
+  history_.clear();
+  pending_user_.clear();
+}
+
 void PromptController::Draw(const Brain &brain) const {
   const int sw = GetScreenWidth();
   const int sh = GetScreenHeight();
@@ -70,24 +94,41 @@ void PromptController::Draw(const Brain &brain) const {
   const Rectangle bar = {static_cast<float>(m), static_cast<float>(y),
                          static_cast<float>(sw - 2 * m), static_cast<float>(h)};
 
-  const Color fill = focused_ ? Fade(DARKBLUE, 0.85f) : Fade(BLACK, 0.6f);
+  const Color fill =
+      focused_ ? Fade(DARKBLUE, AppConfig::kPromptFocusedAlpha)
+               : Fade(BLACK, AppConfig::kPromptUnfocusedAlpha);
   DrawRectangleRec(bar, fill);
-  DrawRectangleLinesEx(bar, 2, focused_ ? SKYBLUE : Fade(LIGHTGRAY, 0.5f));
+  DrawRectangleLinesEx(
+      bar, AppConfig::kPromptBarBorderThickness,
+      focused_ ? SKYBLUE : Fade(LIGHTGRAY, AppConfig::kPromptBorderUnfocusedAlpha));
 
   const int fs = AppConfig::kPromptFontSize;
-  const int tx = m + 8;
+  const int tx = m + AppConfig::kPromptBarPaddingX;
   const int ty = y + (h - fs) / 2;
-  const char *prefix = focused_ ? "> " : "[TAB] ";
+  const char *prefix =
+      focused_ ? AppConfig::kPromptPrefixFocused : AppConfig::kPromptPrefixIdle;
   DrawText(prefix, tx, ty, fs, LIGHTGRAY);
 
   const int prefix_w = MeasureText(prefix, fs);
+  const char *placeholder =
+      language_ == PromptConfig::Language::kPtBr ? "pergunte algo..."
+                                                 : AppConfig::kPromptPlaceholder;
   const char *display =
-      input_.empty() ? (focused_ ? "_" : "pergunta...") : input_.c_str();
-  Color text_col = input_.empty() ? Fade(WHITE, 0.45f) : RAYWHITE;
+      input_.empty()
+          ? (focused_ ? AppConfig::kPromptCaret : placeholder)
+          : input_.c_str();
+  const Color text_col =
+      input_.empty() ? Fade(WHITE, AppConfig::kPromptPlaceholderAlpha)
+                     : RAYWHITE;
   DrawText(display, tx + prefix_w, ty, fs, text_col);
 
-  if (!brain.LlamaReady()) {
-    DrawText(" (LLM offline)", tx + prefix_w + MeasureText(display, fs), ty,
-             fs / 2, ORANGE);
+  if (!brain.IsReady()) {
+    if (brain.IsLoading()) {
+      DrawText(" (carregando...)", tx + prefix_w + MeasureText(display, fs), ty,
+               fs / 2, SKYBLUE);
+    } else {
+      DrawText(AppConfig::kPromptOfflineSuffix,
+               tx + prefix_w + MeasureText(display, fs), ty, fs / 2, ORANGE);
+    }
   }
 }

@@ -1,9 +1,15 @@
-#include "hologram.h"
+#include "screen/hologram.h"
 
-Hologram::Hologram(const char *model_path) : rotation_(0.0f) {
+#include <iostream>
+
+Hologram::Hologram(const char *model_path) {
   using HConfig = LayoutConfig::HologramConfig::CameraConfig;
 
   model_ = LoadModel(model_path);
+  if (model_.meshCount == 0) {
+    std::cerr << "[hologram] failed to load model: " << model_path << '\n';
+  }
+
   camera_.position =
       (Vector3){HConfig::position_x, HConfig::position_y, HConfig::position_z};
   camera_.target =
@@ -25,7 +31,7 @@ void Hologram::Draw(Color color) {
   using AConfig = LayoutConfig::HologramConfig::AnimationConfig;
 
   BeginMode3D(camera_);
-  // DrawGrid(10, 1.0f); // if necessary for while debugging
+  //DrawGrid(10, 1.0f);  // debug: uncomment to show 3D ground grid
   const Color hologram_color = Fade(color, AConfig::color_fade_alpha);
 
   const Vector3 model_position = {HModel::position_x, HModel::position_y,
@@ -37,9 +43,9 @@ void Hologram::Draw(Color color) {
                                HModel::scale_z};
 
   // TODO: decide between DrawModelWiresEx and DrawModelEx
-  // DrawModelWiresEx(model_, model_position, model_rotation_axis, rotation_,
-  //                  model_scale, hologram_color);
-  DrawModelEx(model_, model_position, model_rotation_axis, rotation_,
-              model_scale, hologram_color);
+  DrawModelWiresEx(model_, model_position, model_rotation_axis, rotation_,
+                   model_scale, hologram_color);
+  // DrawModelEx(model_, model_position, model_rotation_axis, rotation_,
+  //             model_scale, hologram_color);
   EndMode3D();
 }
