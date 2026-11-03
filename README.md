@@ -70,6 +70,13 @@ The model repository identifies the model as Apache-2.0 licensed. Review the
 redistributing the weights. Model downloads are not part of CI; CI only
 configures and compiles the application.
 
+## Authorship
+
+Azulindo is an original project created and developed by
+[Patrícia Micheletto](https://github.com/pmicheletto). Third-party dependencies,
+models, and assets remain the work of their respective authors and are subject
+to their own licenses.
+
 ## Licensing
 
 The original Azulindo source code is licensed under the Mozilla Public License
