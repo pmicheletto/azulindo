@@ -1,7 +1,7 @@
 # Azulindo
 
 Azulindo is an offline AI companion application written in C++20, built with
-raylib and llama.cpp.
+raylib.
 
 ## Setup and build
 
